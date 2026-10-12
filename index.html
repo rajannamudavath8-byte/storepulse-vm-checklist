@@ -143,6 +143,9 @@
     .npt-add { margin-top: 12px; }
 
     .actions {
+      position: sticky;
+      bottom: 10px;
+      z-index: 5;
       display: flex;
       align-items: center;
       justify-content: flex-end;
@@ -176,7 +179,7 @@
     .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
     .actions .button-row { flex-wrap: nowrap; gap: 7px; }
     .actions button { padding: 7px 12px; font-size: .88rem; }
-    .back-to-top { position: fixed; right: 20px; bottom: 20px; z-index: 6; display: inline-flex; align-items: center; gap: 6px; padding: 9px 13px; border-radius: 999px; box-shadow: 0 4px 14px #18332d30; }
+    .back-to-top { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; }
     .back-to-top[hidden] { display: none; }
     .success-dialog { width: min(440px, calc(100% - 32px)); padding: 32px 28px 26px; border: 0; border-radius: 18px; color: var(--ink); text-align: center; box-shadow: 0 20px 60px #18332d40; overflow: hidden; }
     .success-dialog::backdrop { background: #17231f66; backdrop-filter: blur(3px); }
@@ -217,9 +220,10 @@
       .npt-entry { grid-template-columns: 1fr; }
       .category-heading { padding: 12px; }
       .actions { justify-content: stretch; padding: 6px; }
-      .actions .button-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; gap: 5px; }
-      .actions button { width: 100%; min-width: 0; padding: 8px 4px; font-size: .78rem; white-space: nowrap; }
-      .back-to-top { right: 12px; bottom: 82px; }
+      .actions { bottom: 70px; }
+      .actions .button-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; gap: 5px; }
+      .actions button { width: 100%; min-width: 0; padding: 8px 3px; font-size: .72rem; white-space: nowrap; }
+      .actions .back-to-top { padding: 8px 3px; }
       .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .section-nav { top: 8px; }
     }
@@ -326,6 +330,7 @@
         <button id="newChecklist" class="secondary" type="button">⟳ Restart checklist</button>
         <button id="saveDraft" class="secondary" type="button">▣ Save draft</button>
         <button id="submitChecklist" class="primary-blue" type="button">✓ Submit audit</button>
+        <button id="backToTop" class="secondary back-to-top" type="button" aria-label="Back to top" hidden>↑ Top</button>
       </div>
     </div>
     <section class="panel" data-screen="reports" aria-labelledby="saved-heading">
@@ -350,7 +355,6 @@
 
   </main>
 
-  <button id="backToTop" class="back-to-top" type="button" aria-label="Back to top" hidden>↑ Back to top</button>
   <dialog id="successDialog" class="success-dialog" aria-labelledby="successTitle" aria-describedby="successDetails">
     <div class="confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="success-icon" aria-hidden="true">✓</div>
@@ -379,7 +383,9 @@
     const selectedReportIds = new Set();
     const fallbackStorageKey = "daily-vm-floor-walk-checklists";
     let useLocalStorageFallback = false;
-    let storageFallbackWarningShown = false;
+    let fallbackNoticeShown = false;
+    let useMemoryFallback = false;
+    let memoryFallbackRecords = [];
     const allItems = [];
     const categorySections = [];
 
@@ -923,30 +929,76 @@
 
     function enableLocalStorageFallback() {
       useLocalStorageFallback = true;
-      if (!storageFallbackWarningShown) {
-        storageFallbackWarningShown = true;
-        showError("This browser denied access to its checklist database. StorePulse is using browser storage as a fallback. Checklists saved in the denied database may not appear until database access is restored.");
+      if (!fallbackNoticeShown && !useMemoryFallback) {
+        fallbackNoticeShown = true;
+        showError("This browser denied access to its checklist database. StorePulse is saving new checklists in this browser's local storage. Older checklists in the denied database may not appear until database access is restored.");
+      }
+    }
+
+    function switchToMemoryFallback(records = memoryFallbackRecords) {
+      useMemoryFallback = true;
+      memoryFallbackRecords = records;
+      if (!fallbackNoticeShown) {
+        fallbackNoticeShown = true;
+        showError("This browser blocks both database and local storage. Checklists can be used during this page session, but browser restrictions mean they will not persist after you close or refresh this page.");
       }
     }
 
     function readFallbackRecords() {
+      if (useMemoryFallback) return memoryFallbackRecords;
+      let storage;
+      try {
+        storage = window.localStorage;
+      } catch (error) {
+        if (useLocalStorageFallback) switchToMemoryFallback();
+        return [];
+      }
+      if (!storage) {
+        if (useLocalStorageFallback) switchToMemoryFallback();
+        return [];
+      }
       let records;
       try {
-        records = JSON.parse(localStorage.getItem(fallbackStorageKey) || "[]");
+        records = JSON.parse(storage.getItem(fallbackStorageKey) || "[]");
       } catch (error) {
+        if (useLocalStorageFallback && (error?.name === "SecurityError" || error?.name === "NotAllowedError")) {
+          switchToMemoryFallback();
+          return memoryFallbackRecords;
+        }
         if (error instanceof SyntaxError) throw new Error("The browser's backup checklist data is invalid.");
         throw error;
       }
       if (!Array.isArray(records)) throw new Error("The browser's backup checklist data is invalid.");
+      if (useLocalStorageFallback) enableLocalStorageFallback();
       return records;
     }
 
     function writeFallbackRecords(records) {
+      if (useMemoryFallback) {
+        switchToMemoryFallback(records);
+        return;
+      }
+      let storage;
       try {
-        localStorage.setItem(fallbackStorageKey, JSON.stringify(records));
+        storage = window.localStorage;
+      } catch {
+        switchToMemoryFallback(records);
+        return;
+      }
+      if (!storage) {
+        switchToMemoryFallback(records);
+        return;
+      }
+      try {
+        storage.setItem(fallbackStorageKey, JSON.stringify(records));
+        enableLocalStorageFallback();
       } catch (error) {
         if (error?.name === "QuotaExceededError") {
           throw new Error("Browser storage is full. Restore database access or remove old checklists before saving more.");
+        }
+        if (error?.name === "SecurityError" || error?.name === "NotAllowedError") {
+          switchToMemoryFallback(records);
+          return;
         }
         throw error;
       }
@@ -989,7 +1041,17 @@
             fallbackRecords.forEach((record) => store.put(record));
             transaction.oncomplete = () => {
               try {
-                localStorage.removeItem(fallbackStorageKey);
+                if (useMemoryFallback) {
+                  memoryFallbackRecords = [];
+                  useMemoryFallback = false;
+                } else {
+                  try {
+                    const storage = window.localStorage;
+                    if (storage) storage.removeItem(fallbackStorageKey);
+                  } catch (error) {
+                    if (error?.name !== "SecurityError" && error?.name !== "NotAllowedError") throw error;
+                  }
+                }
                 useLocalStorageFallback = false;
                 resolve(db);
               } catch (error) {
