@@ -120,6 +120,12 @@
     .item-title { margin: 0 0 9px; font-weight: 700; }
     .item-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
     .photo-field { grid-column: 1 / -1; }
+    .photo-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 8px; }
+    .photo-pick-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 9px 13px; border: 1px solid #c8d3f2; border-radius: 9px; background: #f5f7ff; color: var(--blue-dark); font-weight: 700; cursor: pointer; }
+    .photo-pick-button:hover { background: #e9edff; border-color: var(--blue); }
+    .photo-pick-button:focus-within { outline: 3px solid #c7d2fe; border-color: var(--blue); }
+    .photo-pick-button svg { width: 19px; height: 19px; flex: 0 0 auto; }
+    .photo-pick-button input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); border: 0; }
     .photo-previews { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 9px; }
     .photo-count { margin-top: 5px; color: var(--muted); font-size: .84rem; }
     .photo-thumb { position: relative; width: 110px; height: 90px; }
@@ -429,11 +435,22 @@
               <label class="full"><span>Observation / follow-up <span class="hint">(optional)</span></span>
                 <textarea id="${id}-note" maxlength="300" placeholder="Add an observation or action needed"></textarea>
               </label>
-              <label class="photo-field"><span>Brand/display photos <span class="hint photo-required">(up to 10; required for Yes or No)</span></span>
-                <input id="${id}-photo" type="file" accept="image/*" multiple aria-label="${escapeHtml(name)} brand or display photos">
+              <div class="photo-field"><span>Brand/display photos <span class="hint photo-required">(up to 10; required for Yes or No)</span></span>
+                <div class="photo-actions">
+                  <label class="photo-pick-button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h-4l-1.5 2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L14 4Z"/><circle cx="12" cy="12.5" r="3.2"/></svg>
+                    <span>Take photo</span>
+                    <input id="${id}-camera" type="file" accept="image/*" capture="environment" aria-label="Take a photo for ${escapeHtml(name)}">
+                  </label>
+                  <label class="photo-pick-button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>
+                    <span>Choose from gallery</span>
+                    <input id="${id}-photo" type="file" accept="image/*" multiple aria-label="Choose photos from gallery for ${escapeHtml(name)}">
+                  </label>
+                </div>
                 <span class="photo-count hint" data-photo-count-for="${id}" aria-live="polite">0 / 10 images</span>
                 <div id="${id}-preview" class="photo-previews" aria-live="polite"></div>
-              </label>
+              </div>
             </div>
           </div>`;
         contents.append(article);
@@ -541,10 +558,10 @@
       const preview = document.getElementById(previewId);
       preview.replaceChildren();
       const photos = photoUrls[key] || [];
-      const input = document.getElementById(`${key}-photo`);
+      const inputs = [`${key}-camera`, `${key}-photo`].map((id) => document.getElementById(id)).filter(Boolean);
       const count = document.querySelector(`[data-photo-count-for="${key}"]`);
       if (count) count.textContent = `${photos.length} / ${maxPhotosPerBrand} images`;
-      if (input) input.disabled = photos.length >= maxPhotosPerBrand;
+      inputs.forEach((input) => { input.disabled = photos.length >= maxPhotosPerBrand; });
       photos.forEach((data, index) => {
         const container = document.createElement("div");
         container.className = "photo-thumb";
@@ -557,8 +574,10 @@
         remove.setAttribute("aria-label", `Remove photo ${index + 1}`);
         remove.addEventListener("click", () => {
           photoUrls[key].splice(index, 1);
-          const input = document.getElementById(`${key}-photo`);
-          if (input) input.value = "";
+          [`${key}-camera`, `${key}-photo`].forEach((id) => {
+            const input = document.getElementById(id);
+            if (input) input.value = "";
+          });
           renderPhotos(key, previewId);
           updateProgress();
         });
@@ -568,8 +587,8 @@
     }
 
     function bindPhoto(inputId, previewId, key) {
-      const input = document.getElementById(inputId);
-      input.addEventListener("change", async () => {
+      const inputs = [`${inputId.replace(/-photo$/, "-camera")}`, inputId].map((id) => document.getElementById(id)).filter(Boolean);
+      inputs.forEach((input) => input.addEventListener("change", async () => {
         const files = Array.from(input.files || []);
         if (!files.length) return;
         const currentCount = (photoUrls[key] || []).length;
@@ -590,7 +609,7 @@
           renderPhotos(key, previewId);
           showError(error.message);
         }
-      });
+      }));
     }
 
     function addNptBrand(brand = {}) {
@@ -609,16 +628,33 @@
       nameInput.value = brand.name || "";
       nameLabel.append(nameLabelText, nameInput);
 
-      const photoLabel = document.createElement("label");
+      const photoLabel = document.createElement("div");
       photoLabel.className = "photo-field";
       const photoLabelText = document.createElement("span");
-      const photoInput = document.createElement("input");
-      photoInput.id = `${id}-photo`;
-      photoInput.type = "file";
-      photoInput.accept = "image/*";
-      photoInput.multiple = true;
       photoLabelText.textContent = `Brand photos (up to ${maxPhotosPerBrand})`;
-      photoInput.setAttribute("aria-label", `Photos for NPT brand ${document.querySelectorAll(".npt-entry").length + 1}`);
+      const photoActions = document.createElement("div");
+      photoActions.className = "photo-actions";
+      const cameraLabel = document.createElement("label");
+      cameraLabel.className = "photo-pick-button";
+      cameraLabel.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h-4l-1.5 2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L14 4Z"/><circle cx="12" cy="12.5" r="3.2"/></svg><span>Take photo</span>';
+      const cameraInput = document.createElement("input");
+      cameraInput.id = `${id}-camera`;
+      cameraInput.type = "file";
+      cameraInput.accept = "image/*";
+      cameraInput.capture = "environment";
+      cameraInput.setAttribute("aria-label", `Take a photo for NPT brand ${document.querySelectorAll(".npt-entry").length + 1}`);
+      cameraLabel.append(cameraInput);
+      const galleryLabel = document.createElement("label");
+      galleryLabel.className = "photo-pick-button";
+      galleryLabel.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg><span>Choose from gallery</span>';
+      const galleryInput = document.createElement("input");
+      galleryInput.id = `${id}-photo`;
+      galleryInput.type = "file";
+      galleryInput.accept = "image/*";
+      galleryInput.multiple = true;
+      galleryInput.setAttribute("aria-label", `Choose photos from gallery for NPT brand ${document.querySelectorAll(".npt-entry").length + 1}`);
+      galleryLabel.append(galleryInput);
+      photoActions.append(cameraLabel, galleryLabel);
       const photoCount = document.createElement("span");
       photoCount.className = "photo-count hint";
       photoCount.dataset.photoCountFor = id;
@@ -628,7 +664,7 @@
       preview.id = `${id}-preview`;
       preview.className = "photo-previews";
       preview.setAttribute("aria-live", "polite");
-      photoLabel.append(photoLabelText, photoInput, photoCount, preview);
+      photoLabel.append(photoLabelText, photoActions, photoCount, preview);
 
       const remove = document.createElement("button");
       remove.className = "danger";
