@@ -1644,81 +1644,94 @@
       });
     }
 
-    function addDetail(pptx, answer, index, total) {
+    function addPhotoPanel(pptx, slide, photo, index, total, box) {
+      slide.addShape(pptx.ShapeType.roundRect, {
+        x: box.x, y: box.y, w: box.w, h: box.h, rectRadius: 0.08,
+        line: { color: "DCE5F5", pt: 1 }, fill: { color: "FFFFFF" }
+      });
+      if (total > 1) {
+        slide.addText(`PHOTO ${index + 1} OF ${total}`, {
+          x: box.x + 0.12, y: box.y + 0.08, w: box.w - 0.24, h: 0.2,
+          fontFace: "Aptos", fontSize: 8, bold: true, color: "61718F", align: "left", margin: 0
+        });
+      }
+      const labelHeight = total > 1 ? 0.34 : 0.16;
+      addPhoto(slide, photo, {
+        x: box.x + 0.16,
+        y: box.y + labelHeight,
+        w: box.w - 0.32,
+        h: box.h - labelHeight - 0.14
+      });
+    }
+
+    function addPhotoPair(pptx, slide, photos, startIndex, total, y, height) {
+      const gap = 0.22;
+      const sideMargin = 0.62;
+      const usableWidth = 13.333 - sideMargin * 2;
+      const pair = photos.slice(startIndex, startIndex + 2);
+      const panelWidth = pair.length === 1 ? usableWidth : (usableWidth - gap) / 2;
+      const startX = pair.length === 1 ? sideMargin : sideMargin;
+      pair.forEach((photo, pairIndex) => {
+        addPhotoPanel(pptx, slide, photo, startIndex + pairIndex, total, {
+          x: startX + pairIndex * (panelWidth + gap),
+          y,
+          w: panelWidth,
+          h: height
+        });
+      });
+      if (!pair.length) {
+        addPhotoPanel(pptx, slide, null, 0, 0, {
+          x: sideMargin, y, w: usableWidth, h: height
+        });
+      }
+    }
+
+    function addDetail(pptx, answer, index, totalAnswers) {
       const photos = answer.photos || (answer.photo ? [answer.photo] : []);
-      const photosPerSlide = 2;
-      const pageCount = Math.max(1, Math.ceil(photos.length / photosPerSlide));
+      const pageCount = Math.max(1, Math.ceil(photos.length / 2));
       for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
         const slide = pptx.addSlide();
-        const firstPhotoIndex = pageIndex * photosPerSlide;
-        const pagePhotos = photos.length
-          ? photos.slice(firstPhotoIndex, firstPhotoIndex + photosPerSlide)
-          : [null];
-        const pageLabel = pageCount > 1 ? `  •  Photos ${firstPhotoIndex + 1}-${Math.min(firstPhotoIndex + photosPerSlide, photos.length)} of ${photos.length}` : "";
-        addBase(pptx, slide, `${answer.group}  •  ${index} of ${total}${pageLabel}`);
+        addBase(pptx, slide, `${answer.group}  •  ${index} of ${totalAnswers}`);
         slide.addText(answer.name, {
-          x: 0.55, y: 0.78, w: 12.1, h: 0.55, fontFace: "Aptos Display", fontSize: 25, bold: true, color: "18332D", valign: "mid"
+          x: 0.62, y: 0.72, w: 12.1, h: 0.62,
+          fontFace: "Aptos Display", fontSize: 25, bold: true, color: "18332D", valign: "mid", margin: 0
         });
         const color = answer.status === "Yes" ? "1261DF" : answer.status === "No" ? "A53B35" : "61718F";
         const statusText = answer.status === "Yes" ? "IN ORDER"
           : answer.status === "No" ? "NEEDS ATTENTION"
             : "NOT APPLICABLE";
         slide.addShape(pptx.ShapeType.roundRect, {
-          x: 0.58, y: 1.42, w: 3.25, h: 0.42, rectRadius: 0.08,
+          x: 0.64, y: 1.42, w: 2.45, h: 0.34, rectRadius: 0.06,
           line: { color, transparency: 100 }, fill: { color }
         });
         slide.addText(statusText, {
-          x: 0.72, y: 1.52, w: 2.97, h: 0.2, fontFace: "Aptos", fontSize: 11, bold: true, color: "FFFFFF", align: "center", margin: 0
+          x: 0.74, y: 1.49, w: 2.25, h: 0.16,
+          fontFace: "Aptos", fontSize: 9, bold: true, color: "FFFFFF", align: "center", margin: 0
         });
-
-        const photoGap = 0.24;
-        const photoWidth = pagePhotos.length === 1 ? 12.0 : (12.0 - photoGap) / 2;
-        const photoY = 1.98;
-        const photoHeight = 2.82;
-        pagePhotos.forEach((photo, photoIndex) => {
-          const photoX = 0.66 + photoIndex * (photoWidth + photoGap);
-          slide.addShape(pptx.ShapeType.roundRect, {
-            x: photoX, y: photoY, w: photoWidth, h: photoHeight, rectRadius: 0.08,
-            line: { color: "DCE5DF", pt: 1 }, fill: { color: "FFFFFF" }
-          });
-          addPhoto(slide, photo, {
-            x: photoX + 0.12, y: photoY + 0.12, w: photoWidth - 0.24, h: photoHeight - 0.24
-          });
-        });
-
+        const firstPhotoIndex = pageIndex * 2;
+        addPhotoPair(pptx, slide, photos, firstPhotoIndex, photos.length, 1.92, 3.85);
         slide.addText("OBSERVATION / FOLLOW-UP", {
-          x: 0.66, y: 5.08, w: 12.0, h: 0.25, fontFace: "Aptos", fontSize: 10, bold: true, charSpacing: 0.8, color: "63746F"
-        });
-        slide.addShape(pptx.ShapeType.roundRect, {
-          x: 0.66, y: 5.42, w: 12.0, h: 1.25, rectRadius: 0.08,
-          line: { color: "DCE5DF", pt: 1 }, fill: { color: "FFFFFF" }
+          x: 0.64, y: 5.96, w: 12.05, h: 0.18,
+          fontFace: "Aptos", fontSize: 8, bold: true, charSpacing: 0.6, color: "61718F", margin: 0
         });
         slide.addText(answer.note || "No observation recorded.", {
-          x: 0.86, y: 5.58, w: 11.6, h: 0.9, fontFace: "Aptos", fontSize: 15, color: answer.note ? "18332D" : "87948F",
-          valign: "top", breakLine: false, margin: 0.04, fit: "shrink"
+          x: 0.64, y: 6.2, w: 12.05, h: 0.62,
+          fontFace: "Aptos", fontSize: 10, color: answer.note ? "18332D" : "87948F",
+          valign: "top", breakLine: false, margin: 0
         });
       }
     }
 
     function addNptDetail(pptx, name, photos, brandIndex, totalBrands) {
-      const pageCount = Math.max(1, photos.length);
-      for (let photoIndex = 0; photoIndex < pageCount; photoIndex += 1) {
+      const pageCount = Math.max(1, Math.ceil(photos.length / 2));
+      for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
         const slide = pptx.addSlide();
-        addBase(pptx, slide, `NPT brand ${brandIndex} of ${totalBrands}  •  Photo ${photoIndex + 1} of ${pageCount}`);
-        slide.addText("NPT brand", {
-          x: 0.55, y: 0.82, w: 6.2, h: 0.8, fontFace: "Aptos Display", fontSize: 27, bold: true, color: "18332D"
+        addBase(pptx, slide, `NPT BRAND ${brandIndex} OF ${totalBrands}`);
+        slide.addText(name || "NPT brand", {
+          x: 0.62, y: 0.82, w: 12.1, h: 0.72,
+          fontFace: "Aptos Display", fontSize: 25, bold: true, color: "18332D", valign: "mid", margin: 0
         });
-        slide.addText("BRAND NAME(S)", {
-          x: 0.6, y: 2.0, w: 5.5, h: 0.25, fontFace: "Aptos", fontSize: 10, bold: true, charSpacing: 0.8, color: "63746F"
-        });
-        slide.addText(name, {
-          x: 0.6, y: 2.4, w: 5.5, h: 1.25, fontFace: "Aptos", fontSize: 20, color: "18332D", valign: "top"
-        });
-        slide.addShape(pptx.ShapeType.roundRect, {
-          x: 6.45, y: 1.35, w: 6.25, h: 4.8, rectRadius: 0.08,
-          line: { color: "DCE5DF", pt: 1 }, fill: { color: "FFFFFF" }
-        });
-        addPhoto(slide, photos[photoIndex], { x: 6.65, y: 1.55, w: 5.85, h: 4.4 });
+        addPhotoPair(pptx, slide, photos, pageIndex * 2, photos.length, 1.82, 4.45);
       }
     }
 
