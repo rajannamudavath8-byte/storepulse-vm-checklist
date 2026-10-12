@@ -9,6 +9,11 @@
   <style>
     :root {
       color-scheme: light;
+      --font-body: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      --font-size-sm: .875rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.375rem;
       --ink: #17264d;
       --muted: #61718f;
       --green: #2563eb;
@@ -31,7 +36,7 @@
       margin: 0;
       background: var(--page);
       color: var(--ink);
-      font: 15px/1.5 "Segoe UI", Arial, sans-serif;
+      font: var(--font-size-base)/1.5 var(--font-body);
     }
 
     header {
@@ -42,32 +47,32 @@
 
     .brand-lockup { display: flex; align-items: center; gap: 13px; margin-bottom: 4px; }
     .brand-lockup svg { width: 42px; height: 42px; flex: 0 0 auto; fill: none; stroke: #55a4ff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-    header h1 { display: flex; margin: 0; font-size: clamp(1.55rem, 3vw, 2.1rem); letter-spacing: .015em; }
+    header h1 { display: flex; margin: 0; font-size: clamp(1.75rem, 3vw, 2.1rem); line-height: 1.15; letter-spacing: .015em; }
     header h1 span:last-child { color: #55a4ff; }
-    header p { margin: 0; color: #d9e8ff; letter-spacing: .02em; }
+    header p { margin: 2px 0 0; color: #d9e8ff; font-size: var(--font-size-sm); letter-spacing: .02em; }
 
-    main { width: min(1100px, calc(100% - 32px)); margin: 24px auto 56px; }
+    main { width: min(1100px, calc(100% - 32px)); margin: 18px auto 44px; }
     .app-nav { position: sticky; top: 0; z-index: 5; display: flex; justify-content: center; gap: 8px; padding: 10px 14px; background: #fff; border-bottom: 1px solid var(--line); box-shadow: 0 3px 14px #18332d0d; }
-    .app-nav button { display: inline-flex; align-items: center; gap: 9px; padding: 9px 15px; background: transparent; color: var(--muted); border: 1px solid transparent; }
+    .app-nav button { display: inline-flex; align-items: center; gap: 9px; padding: 9px 15px; background: transparent; color: var(--muted); border: 1px solid transparent; font-size: var(--font-size-sm); }
     .app-nav button:hover { background: #f1efff; color: var(--purple-dark); }
     .app-nav button[aria-current="page"] { color: var(--purple-dark); border-color: #d8c9f2; background: linear-gradient(90deg, #edf4ff 0 50%, #f5efff 50% 100%); }
     .app-nav svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     [data-screen][hidden] { display: none !important; }
     .dashboard-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
     .metric-card { padding: 17px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-    .metric-card span { display: block; color: var(--muted); font-size: .9rem; }
+    .metric-card span { display: block; color: var(--muted); font-size: var(--font-size-sm); }
     .metric-card strong { display: block; margin-top: 5px; color: var(--purple-dark); font-size: 1.8rem; line-height: 1.2; }
     .dashboard-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
     .primary-blue { background: var(--blue); }
     .primary-blue:hover { background: var(--blue-dark); }
     .status-unavailable { color: var(--muted); font-weight: 700; }
     .panel, .category { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
-    .panel { padding: 20px; margin-bottom: 18px; }
-    .panel h2 { margin: 0 0 15px; font-size: 1.13rem; }
-    .intro { color: var(--muted); margin: -7px 0 18px; }
+    .panel { padding: 16px; margin-bottom: 12px; }
+    .panel h2 { margin: 0 0 12px; font-size: var(--font-size-xl); line-height: 1.3; letter-spacing: -.01em; }
+    .intro { color: var(--muted); margin: -7px 0 16px; font-size: var(--font-size-sm); }
 
-    .meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    label { display: block; font-weight: 650; }
+    .meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    label { display: block; font-size: var(--font-size-sm); font-weight: 600; }
     label span { display: block; margin-bottom: 6px; }
     input, select, textarea {
       width: 100%;
@@ -82,23 +87,23 @@
     input[type="file"] { padding: 8px; font-size: .9rem; }
     textarea { min-height: 82px; resize: vertical; }
     .full { grid-column: 1 / -1; }
-    .hint { color: var(--muted); font-size: .87rem; font-weight: 400; }
+    .hint { color: var(--muted); font-size: .8125rem; font-weight: 400; }
 
     .progress-wrap { margin-top: 17px; }
-    .progress-line { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px; font-size: .92rem; }
+    .progress-line { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px; font-size: var(--font-size-sm); }
     .progress-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-    .progress-actions button { padding: 7px 12px; font-size: .88rem; }
+    .progress-actions button { padding: 7px 12px; font-size: var(--font-size-sm); }
     progress { width: 100%; height: 12px; accent-color: var(--blue); }
     #progressText { color: var(--muted); }
 
-    .category { margin: 18px 0; overflow: hidden; }
+    .category { margin: 12px 0; overflow: hidden; }
     .category-heading { padding: 14px 18px; background: linear-gradient(90deg, #edf4ff 0 50%, #f4efff 50% 100%); border-bottom: 1px solid var(--line); }
     .category-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .category-heading h2 { margin: 0; font-size: 1.05rem; }
+    .category-heading h2 { margin: 0; font-size: var(--font-size-lg); line-height: 1.3; letter-spacing: -.005em; }
     .category-toggle { flex: 0 0 auto; min-width: 38px; padding: 4px 10px; font-size: 1.2rem; line-height: 1.25; }
     .category-contents[hidden] { display: none !important; }
-    .section-nav { position: sticky; top: 65px; z-index: 3; display: flex; gap: 8px; overflow-x: auto; padding: 10px; margin: 12px 0; background: rgba(255,255,255,.97); border: 1px solid var(--line); border-radius: 11px; box-shadow: 0 4px 16px #18332d12; }
-    .section-nav button { flex: 0 0 auto; padding: 8px 11px; font-size: .88rem; }
+    .section-nav { position: sticky; top: 65px; z-index: 3; display: flex; gap: 8px; overflow-x: auto; padding: 8px; margin: 8px 0; background: rgba(255,255,255,.97); border: 1px solid var(--line); border-radius: 11px; box-shadow: 0 4px 16px #18332d12; }
+    .section-nav button { flex: 0 0 auto; padding: 8px 11px; font-size: var(--font-size-sm); }
     .section-nav button.active { background: var(--purple); }
     .section-nav .nav-count { margin-left: 5px; opacity: .78; }
     .saved-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
@@ -108,16 +113,11 @@
     .report-search-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
     .report-search-label { display: block; max-width: 360px; margin: 0 0 12px auto; }
     .report-search-label[hidden] { display: none; }
-    .manager-report-tools { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 0 0 14px; }
-    .manager-report-tools label, .report-select-label { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-weight: 600; }
-    .manager-report-tools input[type="checkbox"], .report-select-label input[type="checkbox"] { width: 18px; height: 18px; margin: 0; accent-color: var(--purple); }
-    .report-selection-count { color: var(--muted); font-size: .9rem; }
-    .report-select-label { flex: 0 0 auto; }
     .saved-filters button[aria-pressed="true"] { background: var(--purple-dark); color: #fff; }
-    .item { padding: 18px; border-bottom: 1px solid var(--line); }
+    .item { padding: 14px; border-bottom: 1px solid var(--line); }
     .item:last-child { border-bottom: 0; }
     .item-grid { display: grid; grid-template-columns: minmax(210px, 1fr) minmax(180px, .7fr); gap: 14px; align-items: start; }
-    .item-title { margin: 0 0 9px; font-weight: 700; }
+    .item-title { margin: 0 0 9px; font-size: var(--font-size-base); font-weight: 650; line-height: 1.4; }
     .item-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
     .photo-field { grid-column: 1 / -1; }
     .photo-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 8px; }
@@ -134,7 +134,7 @@
     .photo-thumb button:hover { background: var(--red); }
     .photo-required { color: var(--amber); }
     .status-select option { color: var(--ink); }
-    .availability-field { max-width: 440px; margin: 13px 18px; padding: 12px; border: 1px solid #d4def5; border-radius: 9px; background: #f5f8ff; }
+    .availability-field { max-width: 440px; margin: 10px 14px; padding: 10px; border: 1px solid #d4def5; border-radius: 9px; background: #f5f8ff; }
     .touchpoint-gate { margin-top: 0; }
     .conditional-audit[hidden] { display: none !important; }
     .npt-list { display: grid; gap: 12px; }
@@ -161,6 +161,7 @@
       background: var(--green);
       color: white;
       font: inherit;
+      font-size: var(--font-size-sm);
       font-weight: 700;
       cursor: pointer;
     }
@@ -196,6 +197,7 @@
     .confetti i:nth-child(6) { bottom: 12%; right: 24%; background: #f22; }
     .saved-list { display: grid; gap: 10px; }
     .saved-entry { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 13px; border: 1px solid var(--line); border-radius: 9px; }
+    .saved-entry > .button-row { margin-left: auto; justify-content: flex-end; }
     .saved-entry p { margin: 0; }
     .saved-entry .hint { display: block; }
     .empty-state { margin: 0; color: var(--muted); }
@@ -268,7 +270,6 @@
 
     <section class="panel" data-screen="checklist" aria-labelledby="visit-heading">
       <h2 id="visit-heading">Visual Merchandiser Floor Walk Checklist</h2>
-      <p class="intro">Select the store and enter who completed the walk. The date is set to today and can be changed.</p>
       <div class="meta-grid">
         <label>
           <span>Site name <b aria-hidden="true">*</b></span>
@@ -314,7 +315,6 @@
         <button id="nptToggle" class="secondary category-toggle" type="button" aria-expanded="true" aria-controls="nptContent" aria-label="Collapse NPT brands">−</button>
       </div>
       <div id="nptContent" class="category-contents">
-        <p class="intro">Add each NPT brand separately. You can upload multiple photos for each brand.</p>
         <div id="nptList" class="npt-list"></div>
         <button id="addNptBrand" class="secondary npt-add" type="button">＋ Add NPT brand</button>
       </div>
@@ -323,9 +323,9 @@
     <div id="error" class="error" role="alert"></div>
     <div class="actions" data-screen="checklist">
       <div class="button-row">
-        <button id="newChecklist" class="secondary" type="button">⟳ Restart checklist</button>
+        <button id="newChecklist" class="secondary" type="button">⟳ Restart</button>
         <button id="saveDraft" class="secondary" type="button">▣ Save draft</button>
-        <button id="submitChecklist" class="primary-blue" type="button">✓ Submit audit</button>
+        <button id="submitChecklist" class="primary-blue" type="button">✓ Submit</button>
         <button id="backToTop" class="secondary back-to-top" type="button" aria-label="Back to top" hidden>↑ Top</button>
       </div>
     </div>
@@ -336,16 +336,10 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg>
         </button>
       </div>
-      <p class="intro">Submitted reports stay listed here. Select Edit to update a report, then submit again to replace that saved version.</p>
       <label id="reportSearchLabel" class="report-search-label" hidden>
         <span>Search reports</span>
         <input id="reportSearch" type="search" placeholder="Search by store, site code, auditor or date">
       </label>
-      <div class="manager-report-tools">
-        <label><input id="selectVisibleReports" type="checkbox"> Select visible reports</label>
-        <span id="reportSelectionCount" class="report-selection-count" aria-live="polite">0 selected</span>
-        <button id="downloadManagerReport" class="primary-blue" type="button" disabled>⬇ Manager PPTX</button>
-      </div>
       <div id="savedList" class="saved-list"><p class="empty-state">Loading reports…</p></div>
     </section>
 
@@ -376,7 +370,6 @@
     let nextNptBrandId = 0;
     let editingRecordId = null;
     let editingRecordKind = null;
-    const selectedReportIds = new Set();
     const fallbackStorageKey = "daily-vm-floor-walk-checklists";
     const fallbackCacheName = "storepulse-checklists-v1";
     const fallbackCacheKey = new URL(".__storepulse_checklists__", location.href).href;
@@ -768,7 +761,7 @@
       const saveDraftButton = document.getElementById("saveDraft");
       saveDraftButton.disabled = !hasQuestionAnswer;
       saveDraftButton.title = hasQuestionAnswer
-        ? "Save this checklist as a draft and start a new checklist."
+        ? "Save your answers as a draft. Your checklist will stay open so you can continue editing."
         : "Select an answer for a checklist question to enable saving a draft.";
       [0, 1, 2, 3, 4, 5].forEach((groupIndex, displayIndex) => {
         const group = groups[groupIndex];
@@ -1201,8 +1194,8 @@
       if (nptBrands.length) nptBrands.forEach((brand) => addNptBrand(brand));
       else addNptBrand();
       document.getElementById("submitChecklist").textContent = record.kind === "submitted"
-        ? "✓ Update submitted checklist"
-        : "✓ Submit audit";
+        ? "✓ Update"
+        : "✓ Submit";
       updateProgress();
       showError("");
       document.getElementById("visit-heading").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1261,7 +1254,7 @@
       if (!records.length) {
         const empty = document.createElement("p");
         empty.className = "empty-state";
-        empty.textContent = "No audits saved on this device yet.";
+        empty.textContent = "No saved audits yet.";
         recent.append(empty);
         return;
       }
@@ -1273,7 +1266,7 @@
         const view = document.createElement("button");
         view.type = "button";
         view.className = "secondary";
-        view.textContent = record.kind === "draft" ? "Continue" : "View report";
+        view.textContent = record.kind === "draft" ? "✎ Edit" : "View";
         view.addEventListener("click", () => {
           if (record.kind === "draft") {
             applyRecord(record);
@@ -1303,18 +1296,14 @@
     async function renderSavedRecords() {
       const container = document.getElementById("savedList");
       try {
-        const records = (await readRecords()).filter((record) => record.kind === "submitted");
-        const availableIds = new Set(records.map((record) => record.id));
-        selectedReportIds.forEach((id) => {
-          if (!availableIds.has(id)) selectedReportIds.delete(id);
-        });
-        container.replaceChildren();
+        const allRecords = await readRecords();
+        const records = allRecords.filter((record) => record.kind === "submitted");
         const searchText = document.getElementById("reportSearch").value.trim().toLocaleLowerCase();
+        container.replaceChildren();
         if (!records.length) {
-          updateManagerReportControls(records, []);
           const empty = document.createElement("p");
           empty.className = "empty-state";
-          empty.textContent = "No submitted reports saved on this device yet.";
+          empty.textContent = "No submitted reports yet.";
           container.append(empty);
           return;
         }
@@ -1322,7 +1311,6 @@
           !searchText || `${record.site} ${record.auditor} ${record.date}`.toLocaleLowerCase().includes(searchText)
         );
         if (!visibleRecords.length) {
-          updateManagerReportControls(records, []);
           const empty = document.createElement("p");
           empty.className = "empty-state";
           empty.textContent = "No submitted reports match your search.";
@@ -1332,18 +1320,6 @@
         visibleRecords.forEach((record) => {
           const entry = document.createElement("article");
           entry.className = "saved-entry";
-          const selectLabel = document.createElement("label");
-          selectLabel.className = "report-select-label";
-          const select = document.createElement("input");
-          select.type = "checkbox";
-          select.checked = selectedReportIds.has(record.id);
-          select.setAttribute("aria-label", `Select report for ${record.site || "unknown store"}`);
-          select.addEventListener("change", () => {
-            if (select.checked) selectedReportIds.add(record.id);
-            else selectedReportIds.delete(record.id);
-            updateManagerReportControls(records, visibleRecords);
-          });
-          selectLabel.append(select, document.createTextNode("Include"));
           const description = document.createElement("p");
           const title = document.createElement("strong");
           title.textContent = `${record.kind === "draft" ? "Draft" : "Submitted"} — ${record.site || "Site not selected"}`;
@@ -1403,10 +1379,9 @@
             }
           });
           controls.append(load, download, historyButton, remove);
-          entry.append(selectLabel, description, controls, historyList);
+          entry.append(description, controls, historyList);
           container.append(entry);
         });
-        updateManagerReportControls(records, visibleRecords);
       } catch (error) {
         container.textContent = "Local checklist storage is unavailable in this browser.";
         showError(`Could not load saved checklists: ${error.message}`);
@@ -1422,24 +1397,6 @@
           && (answer.status === "N/A" || (answer.photos || (answer.photo ? [answer.photo] : [])).length > 0)
         )
         && nptBrands.every((brand) => Boolean(brand.name && brand.photos.length));
-    }
-
-    function updateManagerReportControls(records, visibleRecords) {
-      const selectedRecords = records.filter((record) => selectedReportIds.has(record.id));
-      const selectedVisibleCount = visibleRecords.filter((record) => selectedReportIds.has(record.id)).length;
-      const selectVisible = document.getElementById("selectVisibleReports");
-      selectVisible.checked = visibleRecords.length > 0 && selectedVisibleCount === visibleRecords.length;
-      selectVisible.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < visibleRecords.length;
-      const downloadButton = document.getElementById("downloadManagerReport");
-      const allReady = selectedRecords.every(isReportExportReady);
-      downloadButton.disabled = selectedRecords.length < 2 || !allReady;
-      downloadButton.title = selectedRecords.length < 2
-        ? "Select at least two submitted reports to create a manager PPTX."
-        : allReady
-          ? "Download one combined PowerPoint for the selected stores."
-          : "Each selected report must have its required answers and photos before export.";
-      document.getElementById("reportSelectionCount").textContent =
-        `${selectedRecords.length} report${selectedRecords.length === 1 ? "" : "s"} selected`;
     }
 
     function resetChecklistForm() {
@@ -1461,7 +1418,7 @@
         setItemAvailability(item, "");
         renderPhotos(item.id, item.id + "-preview");
       });
-      document.getElementById("submitChecklist").textContent = "✓ Submit audit";
+      document.getElementById("submitChecklist").textContent = "✓ Submit";
       updateProgress();
       showError("");
       document.getElementById("visit-heading").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1486,10 +1443,11 @@
           ? editingRecordId
           : `draft-${Date.now()}`;
         await saveRecord(captureCurrent(id, "draft"));
-        resetChecklistForm();
+        editingRecordId = id;
+        editingRecordKind = "draft";
         await renderSavedRecords();
         await renderDashboard();
-        showNotice("Draft saved on this device. A new blank checklist is ready.");
+        showNotice("Draft saved.");
       } catch (error) {
         showError(`Could not save draft: ${error.message}`);
       } finally {
@@ -1534,7 +1492,7 @@
         showError(`Could not submit checklist: ${error.message}`);
       } finally {
         button.disabled = false;
-        button.textContent = editingRecordKind === "submitted" ? "✓ Update submitted checklist" : "✓ Submit audit";
+        button.textContent = editingRecordKind === "submitted" ? "✓ Update" : "✓ Submit";
       }
     }
 
@@ -1552,26 +1510,6 @@
     });
     document.getElementById("dashboardReports").addEventListener("click", () => showView("reports"));
     document.getElementById("reportSearch").addEventListener("input", renderSavedRecords);
-    document.getElementById("selectVisibleReports").addEventListener("change", async (event) => {
-      const shouldSelect = event.currentTarget.checked;
-      try {
-        const records = (await readRecords()).filter((record) => record.kind === "submitted");
-        const searchText = document.getElementById("reportSearch").value.trim().toLocaleLowerCase();
-        const visibleRecords = records.filter((record) =>
-          !searchText || `${record.site} ${record.auditor} ${record.date}`.toLocaleLowerCase().includes(searchText)
-        );
-        visibleRecords.forEach((record) => {
-          if (shouldSelect) selectedReportIds.add(record.id);
-          else selectedReportIds.delete(record.id);
-        });
-        await renderSavedRecords();
-      } catch (error) {
-        showError(`Could not update report selection: ${error.message}`);
-      }
-    });
-    document.getElementById("downloadManagerReport").addEventListener("click", (event) => {
-      downloadManagerReport(event.currentTarget);
-    });
     const reportSearchToggle = document.getElementById("reportSearchToggle");
     const reportSearchLabel = document.getElementById("reportSearchLabel");
     const reportSearch = document.getElementById("reportSearch");
@@ -1780,56 +1718,6 @@
       return pptx;
     }
 
-    function addManagerSummary(pptx, records) {
-      const slide = pptx.addSlide();
-      addBase(pptx, slide, "Multi-store manager report");
-      slide.addText("Manager summary", {
-        x: 0.55, y: 0.82, w: 11.9, h: 0.5, fontFace: "Aptos Display", fontSize: 25, bold: true, color: "18332D"
-      });
-      const rows = [[
-        { text: "STORE", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
-        { text: "WALK DATE", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
-        { text: "BRANDS", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
-        { text: "NPT", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
-        { text: "IN ORDER", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
-        { text: "ATTENTION", options: { bold: true, color: "FFFFFF", fill: "6323AA" } },
-        { text: "N/A", options: { bold: true, color: "FFFFFF", fill: "6323AA" } }
-      ]];
-      const totals = { available: 0, npt: 0, yes: 0, no: 0, na: 0 };
-      records.forEach((record) => {
-        const answers = (record.answers || []).filter((answer) => answer.availability === "Yes");
-        const nptCount = getRecordNptBrands(record).length;
-        const yes = answers.filter((answer) => answer.status === "Yes").length;
-        const no = answers.filter((answer) => answer.status === "No").length;
-        const na = answers.filter((answer) => answer.status === "N/A").length;
-        totals.available += answers.length;
-        totals.npt += nptCount;
-        totals.yes += yes;
-        totals.no += no;
-        totals.na += na;
-        rows.push([record.site || "Site not selected", record.date || "Date not set", String(answers.length), String(nptCount), String(yes), String(no), String(na)]);
-      });
-      rows.push([
-        { text: "TOTAL", options: { bold: true, fill: "EDF4FF" } },
-        { text: `${records.length} reports`, options: { bold: true, fill: "EDF4FF" } },
-        { text: String(totals.available), options: { bold: true, fill: "EDF4FF" } },
-        { text: String(totals.npt), options: { bold: true, fill: "EDF4FF" } },
-        { text: String(totals.yes), options: { bold: true, fill: "EDF4FF" } },
-        { text: String(totals.no), options: { bold: true, fill: "F4EFFF" } },
-        { text: String(totals.na), options: { bold: true, fill: "F4EFFF" } }
-      ]);
-      slide.addTable(rows, {
-        x: 0.45, y: 1.55, w: 12.4, h: 4.9,
-        border: { type: "solid", color: "DCE5DF", pt: 1 },
-        fill: "FFFFFF", color: "18332D", fontFace: "Aptos", fontSize: 11,
-        rowH: 0.36, margin: 0.08, valign: "mid", align: "center",
-        colW: [3.4, 1.75, 1.2, 0.9, 1.5, 1.8, 1.15]
-      });
-      slide.addText("Each store’s detailed audit, observations, and photo evidence follow this summary.", {
-        x: 0.55, y: 6.65, w: 11.8, h: 0.32, fontFace: "Aptos", fontSize: 11, color: "63746F"
-      });
-    }
-
     function addRecordReportSlides(pptx, record) {
       const answers = (record.answers || []).filter((answer) => answer.availability === "Yes");
       addCover(pptx, record.site, record.auditor, record.date, answers);
@@ -1840,6 +1728,10 @@
     }
 
     async function downloadReport(record, button, validateCurrent = false) {
+      if (record.kind !== "submitted") {
+        showError("Only submitted reports can be downloaded as PowerPoint.");
+        return;
+      }
       if (validateCurrent && !validate()) return;
       if (typeof PptxGenJS === "undefined") {
         showError("PowerPoint export could not load. Check your internet connection, refresh this page and try again.");
@@ -1865,33 +1757,6 @@
       }
     }
 
-    async function downloadManagerReport(button) {
-      if (typeof PptxGenJS === "undefined") {
-        showError("PowerPoint export could not load. Check your internet connection, refresh this page and try again.");
-        return;
-      }
-      button.disabled = true;
-      button.textContent = "Creating manager PPTX…";
-      showError("");
-      try {
-        const records = (await readRecords()).filter((record) =>
-          record.kind === "submitted" && selectedReportIds.has(record.id)
-        );
-        if (records.length < 2 || records.some((record) => !isReportExportReady(record))) {
-          throw new Error("Select at least two complete submitted reports before exporting.");
-        }
-        const pptx = createReportPptx();
-        pptx.title = "StorePulse — Multi-store Manager Report";
-        addManagerSummary(pptx, records);
-        records.forEach((record) => addRecordReportSlides(pptx, record));
-        await pptx.writeFile({ fileName: `StorePulse-Manager-Report-${new Date().toISOString().slice(0, 10)}.pptx` });
-      } catch (error) {
-        showError(`Could not create the manager PowerPoint report: ${error.message || "Unexpected export error."}`);
-      } finally {
-        button.textContent = "⬇ Manager PPTX";
-        await renderSavedRecords();
-      }
-    }
   </script>
 </body>
 </html>
