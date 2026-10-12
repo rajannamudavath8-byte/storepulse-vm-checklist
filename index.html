@@ -377,6 +377,9 @@
     let editingRecordId = null;
     let editingRecordKind = null;
     const selectedReportIds = new Set();
+    const fallbackStorageKey = "daily-vm-floor-walk-checklists";
+    let useLocalStorageFallback = false;
+    let storageFallbackWarningShown = false;
     const allItems = [];
     const categorySections = [];
 
@@ -912,21 +915,89 @@
       return true;
     }
 
+    function isDatabasePermissionDenied(error) {
+      return error?.name === "SecurityError"
+        || error?.name === "NotAllowedError"
+        || /denied permission to access the database/i.test(error?.message || "");
+    }
+
+    function enableLocalStorageFallback() {
+      useLocalStorageFallback = true;
+      if (!storageFallbackWarningShown) {
+        storageFallbackWarningShown = true;
+        showError("This browser denied access to its checklist database. StorePulse is using browser storage as a fallback. Checklists saved in the denied database may not appear until database access is restored.");
+      }
+    }
+
+    function readFallbackRecords() {
+      let records;
+      try {
+        records = JSON.parse(localStorage.getItem(fallbackStorageKey) || "[]");
+      } catch (error) {
+        if (error instanceof SyntaxError) throw new Error("The browser's backup checklist data is invalid.");
+        throw error;
+      }
+      if (!Array.isArray(records)) throw new Error("The browser's backup checklist data is invalid.");
+      return records;
+    }
+
+    function writeFallbackRecords(records) {
+      try {
+        localStorage.setItem(fallbackStorageKey, JSON.stringify(records));
+      } catch (error) {
+        if (error?.name === "QuotaExceededError") {
+          throw new Error("Browser storage is full. Restore database access or remove old checklists before saving more.");
+        }
+        throw error;
+      }
+    }
+
     function openSavedDatabase() {
       return new Promise((resolve, reject) => {
-        const request = indexedDB.open("daily-vm-floor-walk");
+        if (useLocalStorageFallback || !window.indexedDB) {
+          enableLocalStorageFallback();
+          resolve(null);
+          return;
+        }
+        let request;
+        try {
+          request = indexedDB.open("daily-vm-floor-walk");
+        } catch (error) {
+          if (isDatabasePermissionDenied(error)) {
+            enableLocalStorageFallback();
+            resolve(null);
+          } else {
+            reject(error);
+          }
+          return;
+        }
         request.onupgradeneeded = () => {
           if (!request.result.objectStoreNames.contains("checklists")) {
             request.result.createObjectStore("checklists", { keyPath: "id" });
           }
         };
         request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error || new Error("Could not open local checklist storage."));
+        request.onerror = () => {
+          if (isDatabasePermissionDenied(request.error)) {
+            enableLocalStorageFallback();
+            resolve(null);
+          } else {
+            reject(request.error || new Error("Could not open local checklist storage."));
+          }
+        };
       });
     }
 
     async function saveRecord(record) {
       const db = await openSavedDatabase();
+      if (!db) {
+        const records = readFallbackRecords();
+        const existingIndex = records.findIndex((savedRecord) => savedRecord.id === record.id);
+        if (existingIndex === -1) records.push(record);
+        else records[existingIndex] = record;
+        writeFallbackRecords(records);
+        return;
+      }
       return new Promise((resolve, reject) => {
         const transaction = db.transaction("checklists", "readwrite");
         transaction.objectStore("checklists").put(record);
@@ -938,6 +1009,7 @@
 
     async function readRecords() {
       const db = await openSavedDatabase();
+      if (!db) return readFallbackRecords().sort((a, b) => b.savedAt.localeCompare(a.savedAt));
       return new Promise((resolve, reject) => {
         const transaction = db.transaction("checklists", "readonly");
         const request = transaction.objectStore("checklists").getAll();
@@ -950,6 +1022,7 @@
 
     async function readRecord(id) {
       const db = await openSavedDatabase();
+      if (!db) return readFallbackRecords().find((record) => record.id === id) || null;
       return new Promise((resolve, reject) => {
         const transaction = db.transaction("checklists", "readonly");
         const request = transaction.objectStore("checklists").get(id);
@@ -962,6 +1035,10 @@
 
     async function deleteRecord(id) {
       const db = await openSavedDatabase();
+      if (!db) {
+        writeFallbackRecords(readFallbackRecords().filter((record) => record.id !== id));
+        return;
+      }
       return new Promise((resolve, reject) => {
         const transaction = db.transaction("checklists", "readwrite");
         transaction.objectStore("checklists").delete(id);
