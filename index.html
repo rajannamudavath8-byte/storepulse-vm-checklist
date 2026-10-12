@@ -1,0 +1,1679 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#312e81">
+  <title>StorePulse — VM Audit</title>
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17264d;
+      --muted: #61718f;
+      --green: #2563eb;
+      --green-dark: #173e9c;
+      --mint: #eaf0ff;
+      --line: #d8e3f5;
+      --surface: #fff;
+      --page: #f3f6f3;
+      --red: #a53b35;
+      --amber: #8a5b12;
+      --purple: #8b35d1;
+      --purple-dark: #6323aa;
+      --blue: #1261df;
+      --blue-dark: #0846ae;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font: 15px/1.5 "Segoe UI", Arial, sans-serif;
+    }
+
+    header {
+      padding: 30px max(22px, calc((100% - 1100px) / 2));
+      background: linear-gradient(112deg, #071d55 0%, #0a3fae 48%, #6323aa 52%, #32116f 100%);
+      color: #fff;
+    }
+
+    .brand-lockup { display: flex; align-items: center; gap: 13px; margin-bottom: 4px; }
+    .brand-lockup svg { width: 42px; height: 42px; flex: 0 0 auto; fill: none; stroke: #55a4ff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    header h1 { display: flex; margin: 0; font-size: clamp(1.55rem, 3vw, 2.1rem); letter-spacing: .015em; }
+    header h1 span:last-child { color: #55a4ff; }
+    header p { margin: 0; color: #d9e8ff; letter-spacing: .02em; }
+
+    main { width: min(1100px, calc(100% - 32px)); margin: 24px auto 56px; }
+    .app-nav { position: sticky; top: 0; z-index: 5; display: flex; justify-content: center; gap: 8px; padding: 10px 14px; background: #fff; border-bottom: 1px solid var(--line); box-shadow: 0 3px 14px #18332d0d; }
+    .app-nav button { display: inline-flex; align-items: center; gap: 9px; padding: 9px 15px; background: transparent; color: var(--muted); border: 1px solid transparent; }
+    .app-nav button:hover { background: #f1efff; color: var(--purple-dark); }
+    .app-nav button[aria-current="page"] { color: var(--purple-dark); border-color: #d8c9f2; background: linear-gradient(90deg, #edf4ff 0 50%, #f5efff 50% 100%); }
+    .app-nav svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    [data-screen][hidden] { display: none !important; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .metric-card { padding: 17px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    .metric-card span { display: block; color: var(--muted); font-size: .9rem; }
+    .metric-card strong { display: block; margin-top: 5px; color: var(--purple-dark); font-size: 1.8rem; line-height: 1.2; }
+    .dashboard-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+    .primary-blue { background: var(--blue); }
+    .primary-blue:hover { background: var(--blue-dark); }
+    .status-unavailable { color: var(--muted); font-weight: 700; }
+    .panel, .category { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+    .panel { padding: 20px; margin-bottom: 18px; }
+    .panel h2 { margin: 0 0 15px; font-size: 1.13rem; }
+    .intro { color: var(--muted); margin: -7px 0 18px; }
+
+    .meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    label { display: block; font-weight: 650; }
+    label span { display: block; margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #bfcfc5;
+      border-radius: 8px;
+      padding: 10px 11px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+    }
+    input:focus, select:focus, textarea:focus { outline: 3px solid #c7d2fe; border-color: var(--blue); }
+    input[type="file"] { padding: 8px; font-size: .9rem; }
+    textarea { min-height: 82px; resize: vertical; }
+    .full { grid-column: 1 / -1; }
+    .hint { color: var(--muted); font-size: .87rem; font-weight: 400; }
+
+    .progress-wrap { margin-top: 17px; }
+    .progress-line { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px; font-size: .92rem; }
+    .progress-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    .progress-actions button { padding: 7px 12px; font-size: .88rem; }
+    progress { width: 100%; height: 12px; accent-color: var(--blue); }
+    #progressText { color: var(--muted); }
+
+    .category { margin: 18px 0; overflow: hidden; }
+    .category-heading { padding: 14px 18px; background: linear-gradient(90deg, #edf4ff 0 50%, #f4efff 50% 100%); border-bottom: 1px solid var(--line); }
+    .category-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .category-heading h2 { margin: 0; font-size: 1.05rem; }
+    .category-toggle { flex: 0 0 auto; min-width: 38px; padding: 4px 10px; font-size: 1.2rem; line-height: 1.25; }
+    .category-contents[hidden] { display: none !important; }
+    .section-nav { position: sticky; top: 65px; z-index: 3; display: flex; gap: 8px; overflow-x: auto; padding: 10px; margin: 12px 0; background: rgba(255,255,255,.97); border: 1px solid var(--line); border-radius: 11px; box-shadow: 0 4px 16px #18332d12; }
+    .section-nav button { flex: 0 0 auto; padding: 8px 11px; font-size: .88rem; }
+    .section-nav button.active { background: var(--purple); }
+    .section-nav .nav-count { margin-left: 5px; opacity: .78; }
+    .saved-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .reports-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+    .reports-heading h2 { margin: 0; }
+    .report-search-toggle { display: inline-grid; place-items: center; width: 40px; height: 40px; padding: 8px; }
+    .report-search-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+    .report-search-label { display: block; max-width: 360px; margin: 0 0 12px auto; }
+    .report-search-label[hidden] { display: none; }
+    .manager-report-tools { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 0 0 14px; }
+    .manager-report-tools label, .report-select-label { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-weight: 600; }
+    .manager-report-tools input[type="checkbox"], .report-select-label input[type="checkbox"] { width: 18px; height: 18px; margin: 0; accent-color: var(--purple); }
+    .report-selection-count { color: var(--muted); font-size: .9rem; }
+    .report-select-label { flex: 0 0 auto; }
+    .saved-filters button[aria-pressed="true"] { background: var(--purple-dark); color: #fff; }
+    .item { padding: 18px; border-bottom: 1px solid var(--line); }
+    .item:last-child { border-bottom: 0; }
+    .item-grid { display: grid; grid-template-columns: minmax(210px, 1fr) minmax(180px, .7fr); gap: 14px; align-items: start; }
+    .item-title { margin: 0 0 9px; font-weight: 700; }
+    .item-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+    .photo-field { grid-column: 1 / -1; }
+    .photo-previews { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 9px; }
+    .photo-count { margin-top: 5px; color: var(--muted); font-size: .84rem; }
+    .photo-thumb { position: relative; width: 110px; height: 90px; }
+    .photo-thumb img { width: 100%; height: 100%; border: 1px solid var(--line); border-radius: 8px; object-fit: cover; }
+    .photo-thumb button { position: absolute; top: 4px; right: 4px; padding: 2px 7px; border-radius: 50%; background: #18332ddd; line-height: 1.4; }
+    .photo-thumb button:hover { background: var(--red); }
+    .photo-required { color: var(--amber); }
+    .status-select option { color: var(--ink); }
+    .availability-field { max-width: 440px; margin: 13px 18px; padding: 12px; border: 1px solid #d4def5; border-radius: 9px; background: #f5f8ff; }
+    .touchpoint-gate { margin-top: 0; }
+    .conditional-audit[hidden] { display: none !important; }
+    .npt-list { display: grid; gap: 12px; }
+    .npt-entry { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(220px, 1.2fr) auto; gap: 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+    .npt-entry .photo-field { grid-column: auto; }
+    .npt-add { margin-top: 12px; }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin: 18px 0 10px;
+      padding: 8px;
+      background: rgba(255,255,255,.97);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: 0 4px 16px #18332d12;
+    }
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 18px;
+      background: var(--green);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { background: var(--green-dark); }
+    .app-nav button:hover { background: #f1efff; }
+    .conditional-audit button:not(.secondary):not(.danger) { background: var(--blue); }
+    .conditional-audit button:not(.secondary):not(.danger):hover { background: var(--blue-dark); }
+    button.secondary { background: #f1eaff; color: var(--purple-dark); border: 1px solid #d9c8f3; }
+    button.secondary:hover { background: #e7d9ff; color: var(--blue-dark); }
+    button.danger { background: #fff0ee; color: var(--red); border: 1px solid #f0d2cf; }
+    button.danger:hover { background: #fbe0dc; }
+    button:disabled { cursor: wait; opacity: .7; }
+    .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .actions .button-row { flex-wrap: nowrap; gap: 7px; }
+    .actions button { padding: 7px 12px; font-size: .88rem; }
+    .back-to-top { position: fixed; right: 20px; bottom: 20px; z-index: 6; display: inline-flex; align-items: center; gap: 6px; padding: 9px 13px; border-radius: 999px; box-shadow: 0 4px 14px #18332d30; }
+    .back-to-top[hidden] { display: none; }
+    .success-dialog { width: min(440px, calc(100% - 32px)); padding: 32px 28px 26px; border: 0; border-radius: 18px; color: var(--ink); text-align: center; box-shadow: 0 20px 60px #18332d40; overflow: hidden; }
+    .success-dialog::backdrop { background: #17231f66; backdrop-filter: blur(3px); }
+    .success-icon { display: grid; place-items: center; width: 142px; height: 142px; margin: 2px auto 20px; border-radius: 50%; background: #6655ee; color: #fff; font-size: 100px; line-height: 1; font-weight: 300; }
+    .success-dialog h2 { margin: 0 0 14px; font-size: 1.55rem; }
+    .success-dialog p { margin: 8px 0; overflow-wrap: anywhere; }
+    .success-timestamp { color: var(--muted); font-size: .92rem; }
+    .success-dialog button { width: min(220px, 100%); margin-top: 18px; padding: 12px 20px; background: #4773dc; font-size: 1.1rem; font-weight: 500; }
+    .success-dialog button:hover { background: #345fc4; }
+    .confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+    .confetti i { position: absolute; width: 10px; height: 10px; background: #f22; }
+    .confetti i:nth-child(1) { top: 20%; left: 8%; background: #f22; }
+    .confetti i:nth-child(2) { top: 30%; right: 10%; background: #163ad6; }
+    .confetti i:nth-child(3) { top: 50%; left: 15%; width: 9px; height: 9px; border-radius: 50%; background: #f3db00; }
+    .confetti i:nth-child(4) { top: 62%; right: 12%; width: 9px; height: 9px; border-radius: 50%; background: #21a74b; }
+    .confetti i:nth-child(5) { bottom: 16%; left: 22%; background: #163ad6; }
+    .confetti i:nth-child(6) { bottom: 12%; right: 24%; background: #f22; }
+    .saved-list { display: grid; gap: 10px; }
+    .saved-entry { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 13px; border: 1px solid var(--line); border-radius: 9px; }
+    .saved-entry p { margin: 0; }
+    .saved-entry .hint { display: block; }
+    .empty-state { margin: 0; color: var(--muted); }
+    .version-history { display: grid; gap: 8px; width: 100%; padding-top: 10px; }
+    .version-history[hidden] { display: none; }
+    .error { display: none; padding: 11px 14px; margin: 14px 0 0; border-radius: 8px; background: #fff0ee; color: var(--red); }
+    .error.success { display: block; background: var(--mint); color: var(--blue-dark); }
+    .notice { margin-top: 13px; font-size: .86rem; color: var(--muted); }
+
+    @media (max-width: 640px) {
+      header { padding: 24px 18px; }
+      .app-nav { position: fixed; inset: auto 0 0; justify-content: space-around; padding: 7px 4px max(7px, env(safe-area-inset-bottom)); border: 1px solid var(--line); border-radius: 14px 14px 0 0; }
+      .app-nav button { flex: 1; flex-direction: column; gap: 2px; padding: 6px 4px; font-size: .78rem; }
+      .app-nav svg { width: 23px; height: 23px; }
+      main { width: min(100% - 20px, 1100px); margin-top: 12px; margin-bottom: 92px; }
+      .panel { padding: 16px; }
+      .meta-grid, .item-grid, .item-fields { grid-template-columns: 1fr; }
+      .full, .photo-field { grid-column: auto; }
+      .npt-entry { grid-template-columns: 1fr; }
+      .category-heading { padding: 12px; }
+      .actions { justify-content: stretch; padding: 6px; }
+      .actions .button-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; gap: 5px; }
+      .actions button { width: 100%; min-width: 0; padding: 8px 4px; font-size: .78rem; white-space: nowrap; }
+      .back-to-top { right: 12px; bottom: 82px; }
+      .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .section-nav { top: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand-lockup">
+      <svg viewBox="0 0 48 48" role="img" aria-label="StorePulse pulse logo">
+        <path d="M5 25h9l5-13 9 25 6-17 4 5h6"></path>
+      </svg>
+      <h1><span>STORE</span><span>PULSE</span></h1>
+    </div>
+    <p>Smarter Audits. Better Stores. Greater Performance.</p>
+  </header>
+
+  <nav class="app-nav" aria-label="Main navigation">
+    <button type="button" data-app-view="dashboard" aria-current="page" title="Dashboard overview">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1"></rect><rect x="13" y="3" width="8" height="5" rx="1"></rect><rect x="13" y="10" width="8" height="11" rx="1"></rect><rect x="3" y="13" width="8" height="8" rx="1"></rect></svg><span>Dashboard</span>
+    </button>
+    <button type="button" data-app-view="checklist" title="Complete audit checklist">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4.5h6M8 11l2 2 5-5M8 17h8"></path></svg><span>Checklist</span>
+    </button>
+    <button type="button" data-app-view="reports" title="Submitted reports and history">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"></path><path d="M14 3v5h5M9 17v-3M13 17v-6M17 17v-5"></path></svg><span>Reports</span>
+    </button>
+  </nav>
+
+  <main>
+    <section class="panel" id="dashboardScreen" data-screen="dashboard" aria-labelledby="dashboard-heading">
+      <h2 id="dashboard-heading">Welcome to StorePulse</h2>
+      <p id="dashboardStore" class="intro">Start a checklist to see the selected store and audit summary.</p>
+      <div class="dashboard-grid">
+        <article class="metric-card"><span>Total saved audits</span><strong id="metricTotal">0</strong></article>
+        <article class="metric-card"><span>Submitted</span><strong id="metricSubmitted">0</strong></article>
+        <article class="metric-card"><span>Drafts</span><strong id="metricDrafts">0</strong></article>
+        <article class="metric-card"><span>Completion</span><strong id="metricCompletion">0%</strong></article>
+      </div>
+      <div class="dashboard-actions">
+        <button id="dashboardNew" class="primary-blue" type="button">＋ Start new audit</button>
+        <button id="dashboardReports" class="secondary" type="button">▤ View reports</button>
+      </div>
+      <h3>Recent activity</h3>
+      <div id="recentActivity" class="saved-list"><p class="empty-state">No audits saved on this device yet.</p></div>
+    </section>
+
+    <section class="panel" data-screen="checklist" aria-labelledby="visit-heading">
+      <h2 id="visit-heading">Visual Merchandiser Floor Walk Checklist</h2>
+      <p class="intro">Select the store and enter who completed the walk. The date is set to today and can be changed.</p>
+      <div class="meta-grid">
+        <label>
+          <span>Site name <b aria-hidden="true">*</b></span>
+          <select id="site" required>
+            <option value="">Select a site</option>
+            <option>P497 — PT-ASHOKA GOLDEN MALL-HYDERABAD</option>
+            <option>P053 — PT-INORBIT MALL MADHAPUR-HYDERABAD</option>
+            <option>P096 — PT-FORUM SUJANA MALL-HYDERABAD</option>
+            <option>P202 — PT-SARATH CITY MALL-HYDERABAD</option>
+            <option>P215 — PT-L&amp;T PANJAGUTTA-HYDERABAD</option>
+            <option>P376 — PT-MUKURAMPURA-KARIMNAGAR</option>
+            <option>P379 — PT-HANAMKONDA-WARANGAL</option>
+            <option>P460 — PT-KOMPALLY-HYDERABAD</option>
+            <option>P670 — PT-BANDLAGUDA-HYDERABAD</option>
+            <option>P704 — PT-RC PURAM-HYDERABAD</option>
+            <option>P715 — PT-MADEENAGUDA-HYDERABAD</option>
+          </select>
+        </label>
+        <label>
+          <span>Walk completed by <b aria-hidden="true">*</b></span>
+          <input id="auditor" type="text" autocomplete="name" placeholder="Name" required>
+        </label>
+        <label>
+          <span>Walk date <b aria-hidden="true">*</b></span>
+          <input id="walkDate" type="date" required>
+        </label>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-line"><strong>Checklist progress</strong><span id="progressText">Confirm brand availability to begin the audit.</span></div>
+        <progress id="progress" max="29" value="0" aria-label="Checklist completion"></progress>
+        <div class="progress-actions">
+          <button id="nextIncomplete" class="secondary" type="button">↓ Next incomplete brand</button>
+        </div>
+      </div>
+    </section>
+
+    <nav id="sectionNav" class="section-nav" data-screen="checklist" aria-label="Jump to checklist category"></nav>
+    <div id="checklist" data-screen="checklist"></div>
+
+    <section class="panel" data-screen="checklist" aria-labelledby="npt-heading">
+      <div class="category-heading">
+        <h2 id="npt-heading">NPT brands <span class="hint">— optional</span></h2>
+        <button id="nptToggle" class="secondary category-toggle" type="button" aria-expanded="true" aria-controls="nptContent" aria-label="Collapse NPT brands">−</button>
+      </div>
+      <div id="nptContent" class="category-contents">
+        <p class="intro">Add each NPT brand separately. You can upload multiple photos for each brand.</p>
+        <div id="nptList" class="npt-list"></div>
+        <button id="addNptBrand" class="secondary npt-add" type="button">＋ Add NPT brand</button>
+      </div>
+    </section>
+
+    <div id="error" class="error" role="alert"></div>
+    <div class="actions" data-screen="checklist">
+      <div class="button-row">
+        <button id="newChecklist" class="secondary" type="button">⟳ Restart checklist</button>
+        <button id="saveDraft" class="secondary" type="button">▣ Save draft</button>
+        <button id="submitChecklist" class="primary-blue" type="button">✓ Submit audit</button>
+      </div>
+    </div>
+    <section class="panel" data-screen="reports" aria-labelledby="saved-heading">
+      <div class="reports-heading">
+        <h2 id="saved-heading">Reports</h2>
+        <button id="reportSearchToggle" class="secondary report-search-toggle" type="button" aria-label="Search reports" aria-expanded="false" aria-controls="reportSearchLabel" title="Search reports">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg>
+        </button>
+      </div>
+      <p class="intro">Submitted reports stay listed here. Select Edit to update a report, then submit again to replace that saved version.</p>
+      <label id="reportSearchLabel" class="report-search-label" hidden>
+        <span>Search reports</span>
+        <input id="reportSearch" type="search" placeholder="Search by store, site code, auditor or date">
+      </label>
+      <div class="manager-report-tools">
+        <label><input id="selectVisibleReports" type="checkbox"> Select visible reports</label>
+        <span id="reportSelectionCount" class="report-selection-count" aria-live="polite">0 selected</span>
+        <button id="downloadManagerReport" class="primary-blue" type="button" disabled>⬇ Manager PPTX</button>
+      </div>
+      <div id="savedList" class="saved-list"><p class="empty-state">Loading reports…</p></div>
+    </section>
+
+  </main>
+
+  <button id="backToTop" class="back-to-top" type="button" aria-label="Back to top" hidden>↑ Back to top</button>
+  <dialog id="successDialog" class="success-dialog" aria-labelledby="successTitle" aria-describedby="successDetails">
+    <div class="confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="success-icon" aria-hidden="true">✓</div>
+    <h2 id="successTitle">Form submitted successfully</h2>
+    <p id="successDetails"></p>
+    <p id="successTimestamp" class="success-timestamp"></p>
+    <button id="successOk" type="button">OK</button>
+  </dialog>
+
+  <script>
+    const groups = [
+      { title: "VM Touch Point", items: ["POP SHOP", "Trend Spots"] },
+      { title: "Ethnic", items: ["PT-RANGMANCH", "PT-AKKRITI", "PT-MARIGOLD LANE"] },
+      { title: "Western", items: ["PT-HONEY", "PT-PEOPLE", "PT-ANNABELLE", "PT-AJILE (W)", "PT-DREAMZ", "PT-SF JEANS (W)"] },
+      { title: "Men's", items: ["PT-PEREGRINE", "PT-AJILE (M)", "PT-STREET 808", "PT-PEOPLE (M)", "PT-SF JEANS (M)", "PT-INDUS ROUTE", "PT-7 ALT"] },
+      { title: "Kid's", items: ["PT-0-2 YRS INFANTS", "PT-2-7 YRS GIRLS", "PT-7-14 YRS GIRLS", "PT-2-7 YRS BOYS", "PT-7-14 YRS BOYS", "PT-AKKRITI KIDS", "PT-INDUS ROUTE KIDS"] },
+      { title: "Non-Apparel", items: ["PT-FOOTWEAR WOMENS", "PT-FOOTWEAR KIDS", "PT-HANDBAGS", "PT-IMPULSE"] }
+    ];
+
+    const checklist = document.getElementById("checklist");
+    const maxPhotosPerBrand = 10;
+    let photoUrls = {};
+    let nextNptBrandId = 0;
+    let editingRecordId = null;
+    let editingRecordKind = null;
+    const selectedReportIds = new Set();
+    const allItems = [];
+    const categorySections = [];
+
+    groups.forEach((group, groupIndex) => {
+      const section = document.createElement("section");
+      section.className = "category";
+      section.id = `category-${groupIndex}`;
+      section.dataset.categoryIndex = String(groupIndex);
+      const heading = document.createElement("div");
+      heading.className = "category-heading";
+      const title = document.createElement("h2");
+      title.textContent = group.title;
+      title.id = `category-heading-${groupIndex}`;
+      const toggle = document.createElement("button");
+      toggle.className = "secondary category-toggle";
+      toggle.type = "button";
+      toggle.textContent = "−";
+      toggle.setAttribute("aria-expanded", "true");
+      toggle.setAttribute("aria-controls", `category-content-${groupIndex}`);
+      toggle.setAttribute("aria-label", `Collapse ${group.title}`);
+      heading.append(title, toggle);
+      section.append(heading);
+      const contents = document.createElement("div");
+      contents.className = "category-contents";
+      contents.id = `category-content-${groupIndex}`;
+      categorySections[groupIndex] = section;
+      group.items.forEach((name, itemIndex) => {
+        const id = "item-" + groupIndex + "-" + itemIndex;
+        const availabilityKey = `${id}-availability`;
+        allItems.push({ id, name, group: group.title, availabilityKey });
+        const article = document.createElement("article");
+        article.className = "item";
+        article.dataset.itemId = id;
+        article.innerHTML = `
+          <div class="item-grid">
+            <div class="availability-and-audit">
+              <label class="availability-field"><span>Does your store have ${escapeHtml(name)}?</span>
+                <select class="availability-select" id="${id}-availability">
+                  <option value="">Select availability</option>
+                  <option value="Yes">Yes — Brand available</option>
+                  <option value="No">No — Brand not available</option>
+                </select>
+              </label>
+              <div class="conditional-audit" id="${id}-audit" hidden>
+                <p class="item-title">${escapeHtml(name)}</p>
+                <label for="${id}-status"><span>Is the brand displayed as per SDM? <b aria-hidden="true">*</b></span></label>
+                <select class="status-select" id="${id}-status" required>
+                  <option value="">Select status</option>
+                  <option value="Yes">Yes — In order</option>
+                  <option value="No">No — Needs attention</option>
+                  <option value="N/A">N/A — Not applicable</option>
+                </select>
+              </div>
+            </div>
+            <div class="item-fields conditional-audit" id="${id}-details" hidden>
+              <label class="full"><span>Observation / follow-up <span class="hint">(optional)</span></span>
+                <textarea id="${id}-note" maxlength="300" placeholder="Add an observation or action needed"></textarea>
+              </label>
+              <label class="photo-field"><span>Brand/display photos <span class="hint photo-required">(up to 10; required for Yes or No)</span></span>
+                <input id="${id}-photo" type="file" accept="image/*" multiple aria-label="${escapeHtml(name)} brand or display photos">
+                <span class="photo-count hint" data-photo-count-for="${id}" aria-live="polite">0 / 10 images</span>
+                <div id="${id}-preview" class="photo-previews" aria-live="polite"></div>
+              </label>
+            </div>
+          </div>`;
+        contents.append(article);
+      });
+      toggle.addEventListener("click", () => {
+        const expanded = toggle.getAttribute("aria-expanded") === "true";
+        contents.hidden = expanded;
+        toggle.textContent = expanded ? "+" : "−";
+        toggle.setAttribute("aria-expanded", String(!expanded));
+        toggle.setAttribute("aria-label", `${expanded ? "Expand" : "Collapse"} ${group.title}`);
+      });
+      section.append(contents);
+      checklist.append(section);
+    });
+
+    function renderChecklistSectionsInOrder() {
+      const checklistOrder = [0, 1, 2, 3, 4, 5];
+      checklistOrder.forEach((groupIndex, displayIndex) => {
+        const section = categorySections[groupIndex];
+        section.id = `category-${displayIndex}`;
+        section.dataset.categoryIndex = String(displayIndex);
+        checklist.append(section);
+      });
+      allItems.sort((a, b) => {
+        const first = document.querySelector(`[data-item-id="${a.id}"]`);
+        const second = document.querySelector(`[data-item-id="${b.id}"]`);
+        const position = first.compareDocumentPosition(second);
+        return position & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+      });
+    }
+
+    renderChecklistSectionsInOrder();
+
+    function renderSectionNavigation() {
+      const navigation = document.getElementById("sectionNav");
+      navigation.replaceChildren();
+      [0, 1, 2, 3, 4, 5].forEach((groupIndex, displayIndex) => {
+        const group = groups[groupIndex];
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "secondary";
+        button.dataset.categoryIndex = String(displayIndex);
+        button.innerHTML = `${escapeHtml(group.title)} <span class="nav-count"></span>`;
+        button.addEventListener("click", () => {
+          document.getElementById(`category-${displayIndex}`).scrollIntoView({ behavior: "smooth", block: "start" });
+          setActiveCategory(displayIndex);
+        });
+        navigation.append(button);
+      });
+    }
+
+    function setActiveCategory(activeIndex) {
+      document.querySelectorAll(".section-nav button").forEach((button) => {
+        const active = Number(button.dataset.categoryIndex) === activeIndex;
+        button.classList.toggle("active", active);
+        if (active) button.classList.remove("secondary");
+        else button.classList.add("secondary");
+        button.setAttribute("aria-current", active ? "location" : "false");
+      });
+    }
+
+    renderSectionNavigation();
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[char]);
+    }
+
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    document.getElementById("walkDate").value = today.toISOString().slice(0, 10);
+
+    function imageToJpeg(file) {
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith("image/")) {
+          reject(new Error("Choose an image file for each photo upload."));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("A photo could not be read. Please choose it again."));
+        reader.onload = () => {
+          const image = new Image();
+          image.onerror = () => reject(new Error("A photo could not be opened. Please use a JPG, PNG or WebP image."));
+          image.onload = () => {
+            const scale = Math.min(1, 1400 / Math.max(image.naturalWidth, image.naturalHeight));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+            canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+            const context = canvas.getContext("2d");
+            if (!context) {
+              reject(new Error("Your browser could not prepare the photo for the report."));
+              return;
+            }
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", 0.82));
+          };
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderPhotos(key, previewId) {
+      const preview = document.getElementById(previewId);
+      preview.replaceChildren();
+      const photos = photoUrls[key] || [];
+      const input = document.getElementById(`${key}-photo`);
+      const count = document.querySelector(`[data-photo-count-for="${key}"]`);
+      if (count) count.textContent = `${photos.length} / ${maxPhotosPerBrand} images`;
+      if (input) input.disabled = photos.length >= maxPhotosPerBrand;
+      photos.forEach((data, index) => {
+        const container = document.createElement("div");
+        container.className = "photo-thumb";
+        const image = document.createElement("img");
+        image.src = data;
+        image.alt = `Uploaded evidence photo ${index + 1}`;
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", `Remove photo ${index + 1}`);
+        remove.addEventListener("click", () => {
+          photoUrls[key].splice(index, 1);
+          const input = document.getElementById(`${key}-photo`);
+          if (input) input.value = "";
+          renderPhotos(key, previewId);
+          updateProgress();
+        });
+        container.append(image, remove);
+        preview.append(container);
+      });
+    }
+
+    function bindPhoto(inputId, previewId, key) {
+      const input = document.getElementById(inputId);
+      input.addEventListener("change", async () => {
+        const files = Array.from(input.files || []);
+        if (!files.length) return;
+        const currentCount = (photoUrls[key] || []).length;
+        if (currentCount + files.length > maxPhotosPerBrand) {
+          input.value = "";
+          showError(`Each brand can have up to ${maxPhotosPerBrand} photos. Remove a photo or choose fewer images.`);
+          return;
+        }
+        try {
+          const addedPhotos = await Promise.all(files.map(imageToJpeg));
+          photoUrls[key] = [...(photoUrls[key] || []), ...addedPhotos];
+          input.value = "";
+          renderPhotos(key, previewId);
+          updateProgress();
+          showError("");
+        } catch (error) {
+          input.value = "";
+          renderPhotos(key, previewId);
+          showError(error.message);
+        }
+      });
+    }
+
+    function addNptBrand(brand = {}) {
+      const id = `npt-brand-${++nextNptBrandId}`;
+      const entry = document.createElement("div");
+      entry.className = "npt-entry";
+      entry.dataset.nptBrandId = id;
+      const nameLabel = document.createElement("label");
+      const nameLabelText = document.createElement("span");
+      nameLabelText.textContent = `NPT brand ${document.querySelectorAll(".npt-entry").length + 1} name`;
+      const nameInput = document.createElement("input");
+      nameInput.id = `${id}-name`;
+      nameInput.type = "text";
+      nameInput.maxLength = 100;
+      nameInput.placeholder = "Enter brand name";
+      nameInput.value = brand.name || "";
+      nameLabel.append(nameLabelText, nameInput);
+
+      const photoLabel = document.createElement("label");
+      photoLabel.className = "photo-field";
+      const photoLabelText = document.createElement("span");
+      const photoInput = document.createElement("input");
+      photoInput.id = `${id}-photo`;
+      photoInput.type = "file";
+      photoInput.accept = "image/*";
+      photoInput.multiple = true;
+      photoLabelText.textContent = `Brand photos (up to ${maxPhotosPerBrand})`;
+      photoInput.setAttribute("aria-label", `Photos for NPT brand ${document.querySelectorAll(".npt-entry").length + 1}`);
+      const photoCount = document.createElement("span");
+      photoCount.className = "photo-count hint";
+      photoCount.dataset.photoCountFor = id;
+      photoCount.setAttribute("aria-live", "polite");
+      photoCount.textContent = `0 / ${maxPhotosPerBrand} images`;
+      const preview = document.createElement("div");
+      preview.id = `${id}-preview`;
+      preview.className = "photo-previews";
+      preview.setAttribute("aria-live", "polite");
+      photoLabel.append(photoLabelText, photoInput, photoCount, preview);
+
+      const remove = document.createElement("button");
+      remove.className = "danger";
+      remove.type = "button";
+      remove.textContent = "Remove";
+      remove.setAttribute("aria-label", `Remove NPT brand ${document.querySelectorAll(".npt-entry").length + 1}`);
+      remove.addEventListener("click", () => {
+        delete photoUrls[id];
+        entry.remove();
+        updateNptBrandLabels();
+      });
+
+      entry.append(nameLabel, photoLabel, remove);
+      document.getElementById("nptList").append(entry);
+      photoUrls[id] = brand.photos || [];
+      bindPhoto(`${id}-photo`, `${id}-preview`, id);
+      renderPhotos(id, `${id}-preview`);
+      updateNptBrandLabels();
+    }
+
+    function updateNptBrandLabels() {
+      document.querySelectorAll(".npt-entry").forEach((entry, index) => {
+        const number = index + 1;
+        entry.querySelector("label span").textContent = `NPT brand ${number} name`;
+        entry.querySelector('input[type="file"]').setAttribute("aria-label", `Photos for NPT brand ${number}`);
+        entry.querySelector('button[aria-label^="Remove NPT brand"]').setAttribute("aria-label", `Remove NPT brand ${number}`);
+      });
+    }
+
+    function getNptBrands() {
+      return Array.from(document.querySelectorAll(".npt-entry")).map((entry) => ({
+        name: entry.querySelector('input[type="text"]').value.trim(),
+        photos: photoUrls[entry.dataset.nptBrandId] || []
+      })).filter((brand) => brand.name || brand.photos.length);
+    }
+
+    function getRecordNptBrands(record) {
+      if (Array.isArray(record.nptBrands)) {
+        return record.nptBrands.map((brand) => ({ name: brand.name || "", photos: brand.photos || [] }));
+      }
+      if (record.nptName) {
+        return [{
+          name: record.nptName,
+          photos: record.nptPhotos || (record.nptPhoto ? [record.nptPhoto] : [])
+        }];
+      }
+      return [];
+    }
+
+    allItems.forEach((item) => {
+      const key = item.id;
+      bindPhoto(key + "-photo", key + "-preview", key);
+      document.getElementById(key + "-status").addEventListener("change", updateProgress);
+      document.getElementById(item.availabilityKey).addEventListener("change", (event) => {
+        setItemAvailability(item, event.target.value);
+        updateProgress();
+      });
+    });
+    document.getElementById("addNptBrand").addEventListener("click", () => addNptBrand());
+    document.getElementById("nptToggle").addEventListener("click", (event) => {
+      const toggle = event.currentTarget;
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
+      document.getElementById("nptContent").hidden = expanded;
+      toggle.textContent = expanded ? "+" : "−";
+      toggle.setAttribute("aria-expanded", String(!expanded));
+      toggle.setAttribute("aria-label", `${expanded ? "Expand" : "Collapse"} NPT brands`);
+    });
+    addNptBrand();
+    updateProgress();
+
+    const categoryObserver = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) setActiveCategory(Number(visible.target.dataset.categoryIndex));
+    }, { rootMargin: "-18% 0px -68% 0px", threshold: [0, 0.15, 0.4] });
+    document.querySelectorAll(".category").forEach((section) => categoryObserver.observe(section));
+
+    function updateProgress() {
+      const isAvailable = (item) => document.getElementById(item.availabilityKey).value === "Yes";
+      const availableItems = allItems.filter(isAvailable);
+      const isComplete = (item) => {
+        const status = document.getElementById(item.id + "-status").value;
+        return Boolean(status && (status === "N/A" || (photoUrls[item.id] || []).length));
+      };
+      const answered = availableItems.filter(isComplete).length;
+      document.getElementById("progress").value = answered;
+      document.getElementById("progress").max = Math.max(1, availableItems.length);
+      document.getElementById("progressText").textContent = availableItems.length
+        ? `${answered} of ${availableItems.length} available brands complete`
+        : "Confirm brand availability to begin the audit.";
+      const hasQuestionAnswer = allItems.some((item) =>
+        Boolean(document.getElementById(item.availabilityKey).value)
+        || Boolean(document.getElementById(item.id + "-status").value)
+      );
+      const saveDraftButton = document.getElementById("saveDraft");
+      saveDraftButton.disabled = !hasQuestionAnswer;
+      saveDraftButton.title = hasQuestionAnswer
+        ? "Save this checklist as a draft and start a new checklist."
+        : "Select an answer for a checklist question to enable saving a draft.";
+      [0, 1, 2, 3, 4, 5].forEach((groupIndex, displayIndex) => {
+        const group = groups[groupIndex];
+        const groupItems = availableItems.filter((item) => item.group === group.title);
+        const groupAnswered = groupItems.filter(isComplete).length;
+        const count = document.querySelector(`.section-nav button[data-category-index="${displayIndex}"] .nav-count`);
+        if (count) count.textContent = `${groupAnswered}/${groupItems.length}`;
+      });
+    }
+
+    function setItemAvailability(item, value) {
+      const available = value === "Yes";
+      document.getElementById(item.id + "-audit").hidden = !available;
+      document.getElementById(item.id + "-details").hidden = !available;
+      if (!available) {
+        document.getElementById(item.id + "-status").value = "";
+        document.getElementById(item.id + "-note").value = "";
+        document.getElementById(item.id + "-photo").value = "";
+        photoUrls[item.id] = [];
+        renderPhotos(item.id, item.id + "-preview");
+      }
+    }
+
+    function showError(message) {
+      const error = document.getElementById("error");
+      error.classList.remove("success");
+      error.textContent = message;
+      error.style.display = message ? "block" : "none";
+      if (message) error.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function showNotice(message) {
+      const notice = document.getElementById("error");
+      notice.classList.add("success");
+      notice.textContent = message;
+      notice.style.display = "block";
+      notice.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function focusChecklistLocation(container, control) {
+      const contents = container.closest(".category-contents");
+      if (contents && contents.hidden) {
+        contents.hidden = false;
+        const toggle = document.querySelector(`[aria-controls="${contents.id}"]`);
+        if (toggle) {
+          toggle.textContent = "−";
+          toggle.setAttribute("aria-expanded", "true");
+          toggle.setAttribute("aria-label", `Collapse ${container.closest(".category")?.querySelector("h2")?.textContent || "section"}`);
+        }
+      }
+      container.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (control) control.focus({ preventScroll: true });
+    }
+
+    function goToNextIncompleteBrand() {
+      const availableItems = allItems.filter((item) =>
+        document.getElementById(item.availabilityKey).value === "Yes"
+      );
+      const incomplete = availableItems.find((item) => {
+        const status = document.getElementById(item.id + "-status").value;
+        return !status || status !== "N/A" && !(photoUrls[item.id] || []).length;
+      });
+      if (incomplete) {
+        const status = document.getElementById(incomplete.id + "-status");
+        const control = status.value ? document.getElementById(incomplete.id + "-photo") : status;
+        showError("");
+        focusChecklistLocation(document.querySelector(`[data-item-id="${incomplete.id}"]`), control);
+        return;
+      }
+      if (!availableItems.length) {
+        showError("Mark a brand as available (Yes) to start its audit.");
+        const firstUnanswered = allItems.find((item) => !document.getElementById(item.availabilityKey).value) || allItems[0];
+        const availability = document.getElementById(firstUnanswered.availabilityKey);
+        focusChecklistLocation(availability.closest(".item"), availability);
+        return;
+      }
+      showNotice("All available brands are complete.");
+    }
+
+    function getAnswers() {
+      return allItems.map((item) => ({
+        ...item,
+        availability: document.getElementById(item.availabilityKey).value,
+        status: document.getElementById(item.availabilityKey).value === "No"
+          ? "Unavailable"
+          : document.getElementById(item.id + "-status").value,
+        note: document.getElementById(item.id + "-note").value.trim(),
+        photos: photoUrls[item.id] || []
+      }));
+    }
+
+    function validate() {
+      const site = document.getElementById("site").value;
+      const auditor = document.getElementById("auditor").value.trim();
+      const date = document.getElementById("walkDate").value;
+      const answers = getAnswers();
+      const availableAnswers = answers.filter((answer) => answer.availability === "Yes");
+      if (!site || !auditor || !date) {
+        showError("Please select a site and enter the walker's name and walk date.");
+        const missingField = !site ? document.getElementById("site")
+          : !auditor ? document.getElementById("auditor")
+            : document.getElementById("walkDate");
+        missingField.focus();
+        return false;
+      }
+      if (!availableAnswers.length) {
+        const availabilityInput = document.getElementById(allItems[0].availabilityKey);
+        showError("Mark Yes for at least one available brand to create this audit and PowerPoint report.");
+        focusChecklistLocation(availabilityInput.closest(".item"), availabilityInput);
+        return false;
+      }
+      const missingAudit = availableAnswers.find((answer) => !answer.status);
+      if (missingAudit) {
+        const statusInput = document.getElementById(missingAudit.id + "-status");
+        showError(`Please complete the VM audit for ${missingAudit.name}.`);
+        focusChecklistLocation(statusInput.closest(".item"), statusInput);
+        return false;
+      }
+      const missingPhoto = availableAnswers.find((answer) => answer.status !== "N/A" && !answer.photos.length);
+      if (missingPhoto) {
+        const photoInput = document.getElementById(missingPhoto.id + "-photo");
+        showError(`Please upload at least one photo for ${missingPhoto.name}, or mark it N/A if it does not apply.`);
+        focusChecklistLocation(photoInput.closest(".item"), photoInput);
+        return false;
+      }
+      const incompleteNptBrand = getNptBrands().find((brand) => !brand.name || !brand.photos.length);
+      if (incompleteNptBrand) {
+        showError("Enter a name and upload at least one photo for each NPT brand.");
+        const incompleteEntry = Array.from(document.querySelectorAll(".npt-entry")).find((entry) => {
+          const inputName = entry.querySelector('input[type="text"]').value.trim();
+          const photos = photoUrls[entry.dataset.nptBrandId] || [];
+          return Boolean(inputName || photos.length) && (!inputName || !photos.length);
+        });
+        const nameInput = incompleteEntry.querySelector('input[type="text"]');
+        const input = incompleteEntry.querySelector(nameInput.value.trim() ? 'input[type="file"]' : 'input[type="text"]');
+        if (document.getElementById("nptContent").hidden) {
+          document.getElementById("nptContent").hidden = false;
+          const toggle = document.getElementById("nptToggle");
+          toggle.textContent = "−";
+          toggle.setAttribute("aria-expanded", "true");
+          toggle.setAttribute("aria-label", "Collapse NPT brands");
+        }
+        focusChecklistLocation(incompleteEntry, input);
+        return false;
+      }
+      return true;
+    }
+
+    function openSavedDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("daily-vm-floor-walk");
+        request.onupgradeneeded = () => {
+          if (!request.result.objectStoreNames.contains("checklists")) {
+            request.result.createObjectStore("checklists", { keyPath: "id" });
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error("Could not open local checklist storage."));
+      });
+    }
+
+    async function saveRecord(record) {
+      const db = await openSavedDatabase();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction("checklists", "readwrite");
+        transaction.objectStore("checklists").put(record);
+        transaction.oncomplete = () => { db.close(); resolve(); };
+        transaction.onerror = () => { db.close(); reject(transaction.error || new Error("Could not save the checklist.")); };
+        transaction.onabort = () => { db.close(); reject(transaction.error || new Error("Checklist save was cancelled.")); };
+      });
+    }
+
+    async function readRecords() {
+      const db = await openSavedDatabase();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction("checklists", "readonly");
+        const request = transaction.objectStore("checklists").getAll();
+        request.onsuccess = () => resolve(request.result.sort((a, b) => b.savedAt.localeCompare(a.savedAt)));
+        request.onerror = () => reject(request.error || new Error("Could not read saved checklists."));
+        transaction.oncomplete = () => db.close();
+        transaction.onerror = () => { db.close(); reject(transaction.error || new Error("Could not read saved checklists.")); };
+      });
+    }
+
+    async function readRecord(id) {
+      const db = await openSavedDatabase();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction("checklists", "readonly");
+        const request = transaction.objectStore("checklists").get(id);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error || new Error("Could not read checklist version."));
+        transaction.oncomplete = () => db.close();
+        transaction.onerror = () => { db.close(); reject(transaction.error || new Error("Could not read checklist version.")); };
+      });
+    }
+
+    async function deleteRecord(id) {
+      const db = await openSavedDatabase();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction("checklists", "readwrite");
+        transaction.objectStore("checklists").delete(id);
+        transaction.oncomplete = () => { db.close(); resolve(); };
+        transaction.onerror = () => { db.close(); reject(transaction.error || new Error("Could not delete the saved checklist.")); };
+      });
+    }
+
+    function captureCurrent(id, kind) {
+      return {
+        id,
+        kind,
+        savedAt: new Date().toISOString(),
+        site: document.getElementById("site").value,
+        auditor: document.getElementById("auditor").value.trim(),
+        date: document.getElementById("walkDate").value,
+        answers: getAnswers(),
+        nptBrands: getNptBrands()
+      };
+    }
+
+    function snapshotRecord(record) {
+      return {
+        kind: record.kind,
+        savedAt: record.savedAt,
+        site: record.site,
+        auditor: record.auditor,
+        date: record.date,
+        answers: record.answers,
+        nptBrands: getRecordNptBrands(record)
+      };
+    }
+
+    function applyRecord(record) {
+      editingRecordId = record.id;
+      editingRecordKind = record.kind;
+      document.getElementById("site").value = record.site || "";
+      document.getElementById("auditor").value = record.auditor || "";
+      document.getElementById("walkDate").value = record.date || "";
+      photoUrls = {};
+      (record.answers || []).forEach((answer) => {
+        const item = allItems.find((candidate) => candidate.id === answer.id);
+        if (!item) return;
+        const availability = answer.availability
+          || (answer.status === "Unavailable" ? "No" : answer.status ? "Yes" : "");
+        document.getElementById(item.availabilityKey).value = availability;
+        setItemAvailability(item, availability);
+        document.getElementById(answer.id + "-status").value = answer.status === "Unavailable" ? "" : (answer.status || "");
+        document.getElementById(answer.id + "-note").value = answer.note || "";
+        photoUrls[answer.id] = answer.photos || (answer.photo ? [answer.photo] : []);
+        renderPhotos(answer.id, answer.id + "-preview");
+      });
+      document.getElementById("nptList").replaceChildren();
+      nextNptBrandId = 0;
+      const nptBrands = getRecordNptBrands(record);
+      if (nptBrands.length) nptBrands.forEach((brand) => addNptBrand(brand));
+      else addNptBrand();
+      document.getElementById("submitChecklist").textContent = record.kind === "submitted"
+        ? "✓ Update submitted checklist"
+        : "✓ Submit audit";
+      updateProgress();
+      showError("");
+      document.getElementById("visit-heading").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function renderHistory(record, container) {
+      container.replaceChildren();
+      const versions = record.history || [];
+      if (!versions.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty-state";
+        empty.textContent = "No previous submitted versions.";
+        container.append(empty);
+        return;
+      }
+      versions.slice().reverse().forEach((version, index) => {
+        const row = document.createElement("div");
+        row.className = "saved-entry";
+        const summary = document.createElement("p");
+        const answerCount = (version.answers || []).filter((answer) => answer.status).length;
+        summary.textContent = `Version ${versions.length - index} · ${new Date(version.savedAt).toLocaleString()} · ${version.auditor || "No name"} · ${answerCount} checks recorded`;
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "secondary";
+        edit.textContent = "Edit this version";
+        edit.addEventListener("click", () => {
+          applyRecord({ ...version, id: record.id, kind: "submitted", history: record.history });
+          showView("checklist");
+        });
+        row.append(summary, edit);
+        container.append(row);
+      });
+    }
+
+    async function renderDashboard() {
+      const records = await readRecords();
+      const submitted = records.filter((record) => record.kind === "submitted");
+      const drafts = records.filter((record) => record.kind === "draft");
+      const completion = submitted.length
+        ? Math.round(submitted.reduce((sum, record) => {
+          const answers = (record.answers || []).filter((answer) => answer.availability === "Yes");
+          const completed = answers.filter((answer) => answer.status || answer.availability === "No").length;
+          return sum + (answers.length ? completed / answers.length : 0);
+        }, 0) / submitted.length * 100)
+        : 0;
+      document.getElementById("metricTotal").textContent = String(records.length);
+      document.getElementById("metricSubmitted").textContent = String(submitted.length);
+      document.getElementById("metricDrafts").textContent = String(drafts.length);
+      document.getElementById("metricCompletion").textContent = `${completion}%`;
+      const selectedSite = document.getElementById("site").value;
+      document.getElementById("dashboardStore").textContent = selectedSite
+        ? `Current checklist: ${selectedSite} · ${document.getElementById("walkDate").value}`
+        : "Select a store in the checklist to start an audit.";
+      const recent = document.getElementById("recentActivity");
+      recent.replaceChildren();
+      if (!records.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty-state";
+        empty.textContent = "No audits saved on this device yet.";
+        recent.append(empty);
+        return;
+      }
+      records.slice(0, 5).forEach((record) => {
+        const line = document.createElement("div");
+        line.className = "saved-entry";
+        const text = document.createElement("p");
+        text.textContent = `${record.kind === "draft" ? "Draft" : "Submitted"} · ${record.site || "No site"} · ${record.date || "No date"} · ${record.auditor || "No name"}`;
+        const view = document.createElement("button");
+        view.type = "button";
+        view.className = "secondary";
+        view.textContent = record.kind === "draft" ? "Continue" : "View report";
+        view.addEventListener("click", () => {
+          if (record.kind === "draft") {
+            applyRecord(record);
+            showView("checklist");
+          } else {
+            showView("reports");
+          }
+        });
+        line.append(text, view);
+        recent.append(line);
+      });
+    }
+
+    function showView(view) {
+      document.querySelectorAll("[data-screen]").forEach((element) => {
+        element.hidden = element.dataset.screen !== view;
+      });
+      document.querySelectorAll("[data-app-view]").forEach((button) => {
+        if (button.dataset.appView === view) button.setAttribute("aria-current", "page");
+        else button.removeAttribute("aria-current");
+      });
+      if (view === "dashboard") renderDashboard().catch((error) => showError(`Could not load dashboard: ${error.message}`));
+      if (view === "reports") renderSavedRecords();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function renderSavedRecords() {
+      const container = document.getElementById("savedList");
+      try {
+        const records = (await readRecords()).filter((record) => record.kind === "submitted");
+        const availableIds = new Set(records.map((record) => record.id));
+        selectedReportIds.forEach((id) => {
+          if (!availableIds.has(id)) selectedReportIds.delete(id);
+        });
+        container.replaceChildren();
+        const searchText = document.getElementById("reportSearch").value.trim().toLocaleLowerCase();
+        if (!records.length) {
+          updateManagerReportControls(records, []);
+          const empty = document.createElement("p");
+          empty.className = "empty-state";
+          empty.textContent = "No submitted reports saved on this device yet.";
+          container.append(empty);
+          return;
+        }
+        const visibleRecords = records.filter((record) =>
+          !searchText || `${record.site} ${record.auditor} ${record.date}`.toLocaleLowerCase().includes(searchText)
+        );
+        if (!visibleRecords.length) {
+          updateManagerReportControls(records, []);
+          const empty = document.createElement("p");
+          empty.className = "empty-state";
+          empty.textContent = "No submitted reports match your search.";
+          container.append(empty);
+          return;
+        }
+        visibleRecords.forEach((record) => {
+          const entry = document.createElement("article");
+          entry.className = "saved-entry";
+          const selectLabel = document.createElement("label");
+          selectLabel.className = "report-select-label";
+          const select = document.createElement("input");
+          select.type = "checkbox";
+          select.checked = selectedReportIds.has(record.id);
+          select.setAttribute("aria-label", `Select report for ${record.site || "unknown store"}`);
+          select.addEventListener("change", () => {
+            if (select.checked) selectedReportIds.add(record.id);
+            else selectedReportIds.delete(record.id);
+            updateManagerReportControls(records, visibleRecords);
+          });
+          selectLabel.append(select, document.createTextNode("Include"));
+          const description = document.createElement("p");
+          const title = document.createElement("strong");
+          title.textContent = `${record.kind === "draft" ? "Draft" : "Submitted"} — ${record.site || "Site not selected"}`;
+          const details = document.createElement("span");
+          details.className = "hint";
+          const answers = (record.answers || []).filter((answer) => answer.availability === "Yes");
+          const attentionCount = answers.filter((answer) => answer.status === "No").length;
+          const photoCount = answers.reduce((count, answer) =>
+            count + (answer.photos || (answer.photo ? [answer.photo] : [])).length, 0
+          ) + getRecordNptBrands(record).reduce((count, brand) => count + brand.photos.length, 0);
+          const statusSummary = record.kind === "submitted"
+            ? ` · ${answers.length} available brands · ${attentionCount} need attention · ${photoCount} photos`
+            : ` · ${answers.filter((answer) => answer.status).length}/${answers.length} answered · ${photoCount} photos`;
+          details.textContent = `${record.date || "Date not set"} · ${record.auditor || "No name"}${statusSummary} · Saved ${new Date(record.savedAt).toLocaleString()}`;
+          description.append(title, document.createElement("br"), details);
+          const controls = document.createElement("div");
+          controls.className = "button-row";
+          const load = document.createElement("button");
+          load.type = "button";
+          load.className = "secondary";
+          load.textContent = "✎ Edit";
+          load.title = record.kind === "submitted" ? "Edit this submitted report, then submit to update it." : "Continue editing this saved draft.";
+          load.addEventListener("click", () => {
+            applyRecord(record);
+            showView("checklist");
+          });
+          const download = document.createElement("button");
+          download.type = "button";
+          download.className = "secondary";
+          download.textContent = "📊 PPT";
+          download.disabled = !isReportExportReady(record);
+          download.title = download.disabled ? "Complete the checklist and add required photos before exporting." : "Download this saved checklist as a PowerPoint.";
+          download.addEventListener("click", () => downloadReport(record, download, false));
+          const historyButton = document.createElement("button");
+          historyButton.type = "button";
+          historyButton.className = "secondary";
+          historyButton.textContent = `◷ History${(record.history || []).length ? ` (${record.history.length})` : ""}`;
+          const historyList = document.createElement("div");
+          historyList.className = "version-history";
+          historyList.hidden = true;
+          historyButton.addEventListener("click", () => {
+            historyList.hidden = !historyList.hidden;
+            if (!historyList.hidden) renderHistory(record, historyList);
+          });
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "danger";
+          remove.textContent = "Delete";
+          remove.addEventListener("click", async () => {
+            if (!window.confirm("Delete this saved checklist from this device?")) return;
+            try {
+              await deleteRecord(record.id);
+              await renderSavedRecords();
+              await renderDashboard();
+            } catch (error) {
+              showError(`Could not delete saved checklist: ${error.message}`);
+            }
+          });
+          controls.append(load, download, historyButton, remove);
+          entry.append(selectLabel, description, controls, historyList);
+          container.append(entry);
+        });
+        updateManagerReportControls(records, visibleRecords);
+      } catch (error) {
+        container.textContent = "Local checklist storage is unavailable in this browser.";
+        showError(`Could not load saved checklists: ${error.message}`);
+      }
+    }
+
+    function isReportExportReady(record) {
+      const answers = (record.answers || []).filter((answer) => answer.availability === "Yes");
+      const nptBrands = getRecordNptBrands(record);
+      return (answers.length > 0 || nptBrands.length > 0)
+        && answers.every((answer) =>
+          Boolean(answer.status)
+          && (answer.status === "N/A" || (answer.photos || (answer.photo ? [answer.photo] : [])).length > 0)
+        )
+        && nptBrands.every((brand) => Boolean(brand.name && brand.photos.length));
+    }
+
+    function updateManagerReportControls(records, visibleRecords) {
+      const selectedRecords = records.filter((record) => selectedReportIds.has(record.id));
+      const selectedVisibleCount = visibleRecords.filter((record) => selectedReportIds.has(record.id)).length;
+      const selectVisible = document.getElementById("selectVisibleReports");
+      selectVisible.checked = visibleRecords.length > 0 && selectedVisibleCount === visibleRecords.length;
+      selectVisible.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < visibleRecords.length;
+      const downloadButton = document.getElementById("downloadManagerReport");
+      const allReady = selectedRecords.every(isReportExportReady);
+      downloadButton.disabled = selectedRecords.length < 2 || !allReady;
+      downloadButton.title = selectedRecords.length < 2
+        ? "Select at least two submitted reports to create a manager PPTX."
+        : allReady
+          ? "Download one combined PowerPoint for the selected stores."
+          : "Each selected report must have its required answers and photos before export.";
+      document.getElementById("reportSelectionCount").textContent =
+        `${selectedRecords.length} report${selectedRecords.length === 1 ? "" : "s"} selected`;
+    }
+
+    function resetChecklistForm() {
+      editingRecordId = null;
+      editingRecordKind = null;
+      document.getElementById("site").value = "";
+      document.getElementById("auditor").value = "";
+      document.getElementById("walkDate").value = today.toISOString().slice(0, 10);
+      document.getElementById("nptList").replaceChildren();
+      nextNptBrandId = 0;
+      addNptBrand();
+      photoUrls = {};
+      allItems.forEach((item) => {
+        document.getElementById(item.availabilityKey).value = "";
+        document.getElementById(item.id + "-status").value = "";
+        document.getElementById(item.id + "-note").value = "";
+        document.getElementById(item.id + "-photo").value = "";
+        photoUrls[item.id] = [];
+        setItemAvailability(item, "");
+        renderPhotos(item.id, item.id + "-preview");
+      });
+      document.getElementById("submitChecklist").textContent = "✓ Submit audit";
+      updateProgress();
+      showError("");
+      document.getElementById("visit-heading").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function saveDraft() {
+      const hasQuestionAnswer = allItems.some((item) =>
+        Boolean(document.getElementById(item.availabilityKey).value)
+        || Boolean(document.getElementById(item.id + "-status").value)
+      );
+      if (!hasQuestionAnswer) {
+        showError("");
+        const firstItem = allItems.find((item) => !document.getElementById(item.availabilityKey).value) || allItems[0];
+        const availability = document.getElementById(firstItem.availabilityKey);
+        focusChecklistLocation(availability.closest(".item"), availability);
+        return;
+      }
+      const button = document.getElementById("saveDraft");
+      button.disabled = true;
+      try {
+        const id = editingRecordKind === "draft" && editingRecordId
+          ? editingRecordId
+          : `draft-${Date.now()}`;
+        await saveRecord(captureCurrent(id, "draft"));
+        resetChecklistForm();
+        await renderSavedRecords();
+        await renderDashboard();
+        showNotice("Draft saved on this device. A new blank checklist is ready.");
+      } catch (error) {
+        showError(`Could not save draft: ${error.message}`);
+      } finally {
+        updateProgress();
+      }
+    }
+
+    function showSubmissionSuccess(record, updated) {
+      document.getElementById("successTitle").textContent = updated
+        ? "Audit updated successfully"
+        : "Form submitted successfully";
+      document.getElementById("successDetails").textContent = `${record.site} · ${record.date}`;
+      document.getElementById("successTimestamp").textContent =
+        `Submitted ${new Date(record.savedAt).toLocaleString()} · Saved on this device`;
+      document.getElementById("successDialog").showModal();
+    }
+
+    async function submitChecklist() {
+      if (!validate()) return;
+      const updatingSubmission = editingRecordKind === "submitted";
+      const button = document.getElementById("submitChecklist");
+      button.disabled = true;
+      button.textContent = "Saving submission…";
+      try {
+        const record = captureCurrent(editingRecordId || `submission-${Date.now()}`, "submitted");
+        const previous = editingRecordId ? await readRecord(editingRecordId) : null;
+        record.history = previous?.history || [];
+        if (previous?.kind === "submitted") {
+          const previousVersion = snapshotRecord(previous);
+          const currentVersion = snapshotRecord(record);
+          delete previousVersion.savedAt;
+          delete currentVersion.savedAt;
+          if (JSON.stringify(previousVersion) !== JSON.stringify(currentVersion)) record.history.push(snapshotRecord(previous));
+        }
+        await saveRecord(record);
+        editingRecordId = record.id;
+        editingRecordKind = "submitted";
+        await renderSavedRecords();
+        await renderDashboard();
+        showSubmissionSuccess(record, updatingSubmission);
+      } catch (error) {
+        showError(`Could not submit checklist: ${error.message}`);
+      } finally {
+        button.disabled = false;
+        button.textContent = editingRecordKind === "submitted" ? "✓ Update submitted checklist" : "✓ Submit audit";
+      }
+    }
+
+    function startNewChecklist() {
+      if (!window.confirm("Start a new checklist? Unsaved changes will be cleared.")) return false;
+      resetChecklistForm();
+      return true;
+    }
+
+    document.querySelectorAll("[data-app-view]").forEach((button) => {
+      button.addEventListener("click", () => showView(button.dataset.appView));
+    });
+    document.getElementById("dashboardNew").addEventListener("click", () => {
+      if (startNewChecklist()) showView("checklist");
+    });
+    document.getElementById("dashboardReports").addEventListener("click", () => showView("reports"));
+    document.getElementById("reportSearch").addEventListener("input", renderSavedRecords);
+    document.getElementById("selectVisibleReports").addEventListener("change", async (event) => {
+      const shouldSelect = event.currentTarget.checked;
+      try {
+        const records = (await readRecords()).filter((record) => record.kind === "submitted");
+        const searchText = document.getElementById("reportSearch").value.trim().toLocaleLowerCase();
+        const visibleRecords = records.filter((record) =>
+          !searchText || `${record.site} ${record.auditor} ${record.date}`.toLocaleLowerCase().includes(searchText)
+        );
+        visibleRecords.forEach((record) => {
+          if (shouldSelect) selectedReportIds.add(record.id);
+          else selectedReportIds.delete(record.id);
+        });
+        await renderSavedRecords();
+      } catch (error) {
+        showError(`Could not update report selection: ${error.message}`);
+      }
+    });
+    document.getElementById("downloadManagerReport").addEventListener("click", (event) => {
+      downloadManagerReport(event.currentTarget);
+    });
+    const reportSearchToggle = document.getElementById("reportSearchToggle");
+    const reportSearchLabel = document.getElementById("reportSearchLabel");
+    const reportSearch = document.getElementById("reportSearch");
+    reportSearchToggle.addEventListener("click", () => {
+      const opening = reportSearchLabel.hidden;
+      reportSearchLabel.hidden = !opening;
+      reportSearchToggle.setAttribute("aria-expanded", String(opening));
+      if (opening) reportSearch.focus();
+      else {
+        reportSearch.value = "";
+        renderSavedRecords();
+        reportSearchToggle.focus();
+      }
+    });
+    reportSearch.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      reportSearch.value = "";
+      reportSearchLabel.hidden = true;
+      reportSearchToggle.setAttribute("aria-expanded", "false");
+      renderSavedRecords();
+      reportSearchToggle.focus();
+    });
+    document.getElementById("site").addEventListener("change", () => {
+      renderDashboard().catch((error) => showError(`Could not update dashboard: ${error.message}`));
+    });
+    document.getElementById("walkDate").addEventListener("change", () => {
+      renderDashboard().catch((error) => showError(`Could not update dashboard: ${error.message}`));
+    });
+    const backToTop = document.getElementById("backToTop");
+    window.addEventListener("scroll", () => {
+      backToTop.hidden = window.scrollY < 500;
+    }, { passive: true });
+    backToTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+    document.getElementById("newChecklist").addEventListener("click", startNewChecklist);
+    document.getElementById("saveDraft").addEventListener("click", saveDraft);
+    document.getElementById("submitChecklist").addEventListener("click", submitChecklist);
+    document.getElementById("nextIncomplete").addEventListener("click", goToNextIncompleteBrand);
+    document.getElementById("successOk").addEventListener("click", () => {
+      document.getElementById("successDialog").close();
+    });
+    renderSavedRecords();
+    showView("dashboard");
+
+    function containImage(data, box) {
+      const image = new Image();
+      image.src = data;
+      const ratio = Math.min(box.w / image.naturalWidth, box.h / image.naturalHeight);
+      const w = image.naturalWidth * ratio;
+      const h = image.naturalHeight * ratio;
+      return { data, x: box.x + (box.w - w) / 2, y: box.y + (box.h - h) / 2, w, h };
+    }
+
+    function addPhoto(slide, data, box) {
+      if (!data) {
+        slide.addText("No photo supplied (N/A)", {
+          x: box.x, y: box.y + box.h / 2 - 0.2, w: box.w, h: 0.4,
+          fontFace: "Aptos", fontSize: 14, color: "687871", align: "center"
+        });
+        return;
+      }
+      slide.addImage(containImage(data, box));
+    }
+
+    function addBase(pptx, slide, sectionLabel) {
+      slide.background = { color: "F2F6FF" };
+      slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 6.667, h: 0.16, line: { color: "1261DF", transparency: 100 }, fill: { color: "1261DF" } });
+      slide.addShape(pptx.ShapeType.rect, { x: 6.667, y: 0, w: 6.666, h: 0.16, line: { color: "8B35D1", transparency: 100 }, fill: { color: "8B35D1" } });
+      slide.addText(sectionLabel.toUpperCase(), {
+        x: 0.55, y: 0.28, w: 12.2, h: 0.25, fontFace: "Aptos", fontSize: 10,
+        bold: true, charSpacing: 1.2, color: "6323AA", margin: 0
+      });
+      slide.addText("STOREPULSE  ·  DAILY VM FLOOR WALK", {
+        x: 0.55, y: 7.12, w: 8, h: 0.2, fontFace: "Aptos", fontSize: 9,
+        color: "61718F", margin: 0
+      });
+      slide.addText("StorePulse", {
+        x: 10.4, y: 7.1, w: 2.35, h: 0.22, fontFace: "Aptos", fontSize: 9,
+        bold: true, color: "6323AA", align: "right", margin: 0
+      });
+    }
+
+    function addCover(pptx, site, auditor, date, answers) {
+      const slide = pptx.addSlide();
+      slide.background = { color: "081F5C" };
+      slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 0.22, h: 7.5, line: { color: "1261DF", transparency: 100 }, fill: { color: "1261DF" } });
+      slide.addShape(pptx.ShapeType.rect, { x: 0.22, y: 0, w: 0.22, h: 7.5, line: { color: "8B35D1", transparency: 100 }, fill: { color: "8B35D1" } });
+      slide.addText("STOREPULSE  ·  VISUAL MERCHANDISING AUDIT", {
+        x: 0.9, y: 1.25, w: 10.9, h: 0.35, fontFace: "Aptos", fontSize: 15, bold: true, charSpacing: 2.2, color: "D9E8FF"
+      });
+      slide.addText("Daily Floor Walk", {
+        x: 0.9, y: 1.85, w: 11.3, h: 0.85, fontFace: "Aptos Display", fontSize: 36, bold: true, color: "FFFFFF"
+      });
+      slide.addText(site, {
+        x: 0.9, y: 3.02, w: 11.3, h: 0.55, fontFace: "Aptos", fontSize: 20, color: "FFFFFF", breakLine: false
+      });
+      slide.addShape(pptx.ShapeType.line, { x: 0.9, y: 4.03, w: 10.8, h: 0, line: { color: "55A4FF", width: 1.2 } });
+      slide.addText(`Walk date  ${date}\nCompleted by  ${auditor}\nAvailable brands  ${answers.length}\nChecklist result  ${answers.filter((answer) => answer.status === "Yes").length} in order  •  ${answers.filter((answer) => answer.status === "No").length} need attention  •  ${answers.filter((answer) => answer.status === "N/A").length} N/A`, {
+        x: 0.9, y: 4.35, w: 11.2, h: 1.25, fontFace: "Aptos", fontSize: 15, color: "EEF4FF", breakLine: false, lineSpacingMultiple: 1.2
+      });
+    }
+
+    function addOverview(pptx, answers) {
+      const slide = pptx.addSlide();
+      addBase(pptx, slide, "Walk summary");
+      slide.addText("Category summary", {
+        x: 0.55, y: 0.82, w: 11.9, h: 0.5, fontFace: "Aptos Display", fontSize: 25, bold: true, color: "18332D"
+      });
+      const columns = [
+        { text: "CATEGORY", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
+        { text: "IN ORDER", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
+        { text: "NEEDS ATTENTION", options: { bold: true, color: "FFFFFF", fill: "6323AA" } },
+        { text: "N/A", options: { bold: true, color: "FFFFFF", fill: "6323AA" } }
+      ];
+      const rows = [columns];
+      groups.forEach((group) => {
+        const groupAnswers = answers.filter((answer) => answer.group === group.title);
+        rows.push([
+          group.title,
+          String(groupAnswers.filter((answer) => answer.status === "Yes").length),
+          String(groupAnswers.filter((answer) => answer.status === "No").length),
+          String(groupAnswers.filter((answer) => answer.status === "N/A").length)
+        ]);
+      });
+      slide.addTable(rows, {
+        x: 0.7, y: 1.65, w: 11.9, h: 4.4, border: { type: "solid", color: "DCE5DF", pt: 1 },
+        fill: "FFFFFF", color: "18332D", fontFace: "Aptos", fontSize: 14,
+        rowH: 0.58, margin: 0.12,
+        valign: "mid", align: "left", colW: [5.0, 2.0, 3.0, 1.9]
+      });
+      slide.addText("Photo evidence and observations are shown on the following brand detail slides.", {
+        x: 0.72, y: 6.3, w: 11.7, h: 0.36, fontFace: "Aptos", fontSize: 12, color: "63746F"
+      });
+    }
+
+    function addDetail(pptx, answer, index, total) {
+      const photos = answer.photos || (answer.photo ? [answer.photo] : []);
+      const pageCount = Math.max(1, photos.length);
+      for (let photoIndex = 0; photoIndex < pageCount; photoIndex += 1) {
+        const slide = pptx.addSlide();
+        const photoLabel = pageCount > 1 ? `  •  Photo ${photoIndex + 1} of ${pageCount}` : "";
+        addBase(pptx, slide, `${answer.group}  •  ${index} of ${total}${photoLabel}`);
+        slide.addText(answer.name, {
+          x: 0.55, y: 0.82, w: 7.3, h: 0.8, fontFace: "Aptos Display", fontSize: 27, bold: true, color: "18332D", valign: "mid"
+        });
+        const color = answer.status === "Yes" ? "1261DF" : answer.status === "No" ? "A53B35" : "61718F";
+        const statusText = answer.status === "Yes" ? "IN ORDER"
+          : answer.status === "No" ? "NEEDS ATTENTION"
+            : "NOT APPLICABLE";
+        slide.addShape(pptx.ShapeType.roundRect, {
+          x: 0.58, y: 1.82, w: 3.25, h: 0.48, rectRadius: 0.08,
+          line: { color, transparency: 100 }, fill: { color }
+        });
+        slide.addText(statusText, {
+          x: 0.72, y: 1.92, w: 2.97, h: 0.2, fontFace: "Aptos", fontSize: 12, bold: true, color: "FFFFFF", align: "center", margin: 0
+        });
+        slide.addText("OBSERVATION / FOLLOW-UP", {
+          x: 0.6, y: 2.72, w: 5.55, h: 0.25, fontFace: "Aptos", fontSize: 10, bold: true, charSpacing: 0.8, color: "63746F"
+        });
+        slide.addText(answer.note || "No observation recorded.", {
+          x: 0.6, y: 3.08, w: 5.45, h: 2.55, fontFace: "Aptos", fontSize: 16, color: answer.note ? "18332D" : "87948F",
+          valign: "top", breakLine: false, margin: 0.04
+        });
+        slide.addShape(pptx.ShapeType.roundRect, {
+          x: 6.45, y: 1.35, w: 6.25, h: 4.8, rectRadius: 0.08,
+          line: { color: "DCE5DF", pt: 1 }, fill: { color: "FFFFFF" }
+        });
+        addPhoto(slide, photos[photoIndex], { x: 6.65, y: 1.55, w: 5.85, h: 4.4 });
+      }
+    }
+
+    function addNptDetail(pptx, name, photos, brandIndex, totalBrands) {
+      const pageCount = Math.max(1, photos.length);
+      for (let photoIndex = 0; photoIndex < pageCount; photoIndex += 1) {
+        const slide = pptx.addSlide();
+        addBase(pptx, slide, `NPT brand ${brandIndex} of ${totalBrands}  •  Photo ${photoIndex + 1} of ${pageCount}`);
+        slide.addText("NPT brand", {
+          x: 0.55, y: 0.82, w: 6.2, h: 0.8, fontFace: "Aptos Display", fontSize: 27, bold: true, color: "18332D"
+        });
+        slide.addText("BRAND NAME(S)", {
+          x: 0.6, y: 2.0, w: 5.5, h: 0.25, fontFace: "Aptos", fontSize: 10, bold: true, charSpacing: 0.8, color: "63746F"
+        });
+        slide.addText(name, {
+          x: 0.6, y: 2.4, w: 5.5, h: 1.25, fontFace: "Aptos", fontSize: 20, color: "18332D", valign: "top"
+        });
+        slide.addShape(pptx.ShapeType.roundRect, {
+          x: 6.45, y: 1.35, w: 6.25, h: 4.8, rectRadius: 0.08,
+          line: { color: "DCE5DF", pt: 1 }, fill: { color: "FFFFFF" }
+        });
+        addPhoto(slide, photos[photoIndex], { x: 6.65, y: 1.55, w: 5.85, h: 4.4 });
+      }
+    }
+
+    function createReportPptx() {
+      const pptx = new PptxGenJS();
+      pptx.layout = "LAYOUT_WIDE";
+      pptx.author = "StorePulse";
+      pptx.subject = "Store visual merchandising floor walk checklist";
+      pptx.title = "StorePulse — Daily VM Floor Walk";
+      pptx.company = "StorePulse";
+      pptx.lang = "en-IN";
+      pptx.theme = {
+        headFontFace: "Aptos Display",
+        bodyFontFace: "Aptos",
+        lang: "en-IN"
+      };
+      return pptx;
+    }
+
+    function addManagerSummary(pptx, records) {
+      const slide = pptx.addSlide();
+      addBase(pptx, slide, "Multi-store manager report");
+      slide.addText("Manager summary", {
+        x: 0.55, y: 0.82, w: 11.9, h: 0.5, fontFace: "Aptos Display", fontSize: 25, bold: true, color: "18332D"
+      });
+      const rows = [[
+        { text: "STORE", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
+        { text: "WALK DATE", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
+        { text: "BRANDS", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
+        { text: "NPT", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
+        { text: "IN ORDER", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
+        { text: "ATTENTION", options: { bold: true, color: "FFFFFF", fill: "6323AA" } },
+        { text: "N/A", options: { bold: true, color: "FFFFFF", fill: "6323AA" } }
+      ]];
+      const totals = { available: 0, npt: 0, yes: 0, no: 0, na: 0 };
+      records.forEach((record) => {
+        const answers = (record.answers || []).filter((answer) => answer.availability === "Yes");
+        const nptCount = getRecordNptBrands(record).length;
+        const yes = answers.filter((answer) => answer.status === "Yes").length;
+        const no = answers.filter((answer) => answer.status === "No").length;
+        const na = answers.filter((answer) => answer.status === "N/A").length;
+        totals.available += answers.length;
+        totals.npt += nptCount;
+        totals.yes += yes;
+        totals.no += no;
+        totals.na += na;
+        rows.push([record.site || "Site not selected", record.date || "Date not set", String(answers.length), String(nptCount), String(yes), String(no), String(na)]);
+      });
+      rows.push([
+        { text: "TOTAL", options: { bold: true, fill: "EDF4FF" } },
+        { text: `${records.length} reports`, options: { bold: true, fill: "EDF4FF" } },
+        { text: String(totals.available), options: { bold: true, fill: "EDF4FF" } },
+        { text: String(totals.npt), options: { bold: true, fill: "EDF4FF" } },
+        { text: String(totals.yes), options: { bold: true, fill: "EDF4FF" } },
+        { text: String(totals.no), options: { bold: true, fill: "F4EFFF" } },
+        { text: String(totals.na), options: { bold: true, fill: "F4EFFF" } }
+      ]);
+      slide.addTable(rows, {
+        x: 0.45, y: 1.55, w: 12.4, h: 4.9,
+        border: { type: "solid", color: "DCE5DF", pt: 1 },
+        fill: "FFFFFF", color: "18332D", fontFace: "Aptos", fontSize: 11,
+        rowH: 0.36, margin: 0.08, valign: "mid", align: "center",
+        colW: [3.4, 1.75, 1.2, 0.9, 1.5, 1.8, 1.15]
+      });
+      slide.addText("Each store’s detailed audit, observations, and photo evidence follow this summary.", {
+        x: 0.55, y: 6.65, w: 11.8, h: 0.32, fontFace: "Aptos", fontSize: 11, color: "63746F"
+      });
+    }
+
+    function addRecordReportSlides(pptx, record) {
+      const answers = (record.answers || []).filter((answer) => answer.availability === "Yes");
+      addCover(pptx, record.site, record.auditor, record.date, answers);
+      addOverview(pptx, answers);
+      answers.forEach((answer, index) => addDetail(pptx, answer, index + 1, answers.length));
+      const nptBrands = getRecordNptBrands(record);
+      nptBrands.forEach((brand, index) => addNptDetail(pptx, brand.name, brand.photos, index + 1, nptBrands.length));
+    }
+
+    async function downloadReport(record, button, validateCurrent = false) {
+      if (validateCurrent && !validate()) return;
+      if (typeof PptxGenJS === "undefined") {
+        showError("PowerPoint export could not load. Check your internet connection, refresh this page and try again.");
+        return;
+      }
+      button.disabled = true;
+      button.textContent = "Creating PowerPoint…";
+      showError("");
+      try {
+        const pptx = createReportPptx();
+        addRecordReportSlides(pptx, record);
+        const storeLabel = (record.site || "store")
+          .replace(/[<>:"/\\|?*\u0000-\u001F]/g, " ")
+          .trim()
+          .replace(/\s+/g, "-")
+          .slice(0, 100);
+        await pptx.writeFile({ fileName: `StorePulse-VM-Floor-Walk-${storeLabel}-${record.date || "report"}.pptx` });
+      } catch (error) {
+        showError(`Could not create the PowerPoint report: ${error.message || "Unexpected export error."}`);
+      } finally {
+        button.disabled = false;
+        button.textContent = button.id === "download" ? "📊 Export report (PPTX)" : "⬇ PPTX";
+      }
+    }
+
+    async function downloadManagerReport(button) {
+      if (typeof PptxGenJS === "undefined") {
+        showError("PowerPoint export could not load. Check your internet connection, refresh this page and try again.");
+        return;
+      }
+      button.disabled = true;
+      button.textContent = "Creating manager PPTX…";
+      showError("");
+      try {
+        const records = (await readRecords()).filter((record) =>
+          record.kind === "submitted" && selectedReportIds.has(record.id)
+        );
+        if (records.length < 2 || records.some((record) => !isReportExportReady(record))) {
+          throw new Error("Select at least two complete submitted reports before exporting.");
+        }
+        const pptx = createReportPptx();
+        pptx.title = "StorePulse — Multi-store Manager Report";
+        addManagerSummary(pptx, records);
+        records.forEach((record) => addRecordReportSlides(pptx, record));
+        await pptx.writeFile({ fileName: `StorePulse-Manager-Report-${new Date().toISOString().slice(0, 10)}.pptx` });
+      } catch (error) {
+        showError(`Could not create the manager PowerPoint report: ${error.message || "Unexpected export error."}`);
+      } finally {
+        button.textContent = "⬇ Manager PPTX";
+        await renderSavedRecords();
+      }
+    }
+  </script>
+</body>
+</html>
