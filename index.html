@@ -689,7 +689,8 @@
       document.querySelectorAll(".npt-entry").forEach((entry, index) => {
         const number = index + 1;
         entry.querySelector("label span").textContent = `NPT brand ${number} name`;
-        entry.querySelector('input[type="file"]').setAttribute("aria-label", `Photos for NPT brand ${number}`);
+        entry.querySelector('input[id$="-camera"]').setAttribute("aria-label", `Take a photo for NPT brand ${number}`);
+        entry.querySelector('input[id$="-photo"]').setAttribute("aria-label", `Choose photos from gallery for NPT brand ${number}`);
         entry.querySelector('button[aria-label^="Remove NPT brand"]').setAttribute("aria-label", `Remove NPT brand ${number}`);
       });
     }
