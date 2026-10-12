@@ -143,9 +143,6 @@
     .npt-add { margin-top: 12px; }
 
     .actions {
-      position: sticky;
-      bottom: 10px;
-      z-index: 5;
       display: flex;
       align-items: center;
       justify-content: flex-end;
@@ -155,7 +152,7 @@
       background: rgba(255,255,255,.97);
       border: 1px solid var(--line);
       border-radius: 10px;
-      box-shadow: 0 4px 16px #18332d12;
+      box-shadow: 0 2px 8px #18332d0d;
     }
     button {
       border: 0;
@@ -178,8 +175,8 @@
     button:disabled { cursor: wait; opacity: .7; }
     .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
     .actions .button-row { flex-wrap: nowrap; gap: 7px; }
-    .actions button { padding: 7px 12px; font-size: .88rem; }
-    .back-to-top { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; }
+    .actions button { padding: 5px 10px; font-size: .82rem; }
+    .back-to-top { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; }
     .back-to-top[hidden] { display: none; }
     .success-dialog { width: min(440px, calc(100% - 32px)); padding: 32px 28px 26px; border: 0; border-radius: 18px; color: var(--ink); text-align: center; box-shadow: 0 20px 60px #18332d40; overflow: hidden; }
     .success-dialog::backdrop { background: #17231f66; backdrop-filter: blur(3px); }
@@ -220,10 +217,9 @@
       .npt-entry { grid-template-columns: 1fr; }
       .category-heading { padding: 12px; }
       .actions { justify-content: stretch; padding: 6px; }
-      .actions { bottom: 70px; }
       .actions .button-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; gap: 5px; }
-      .actions button { width: 100%; min-width: 0; padding: 8px 3px; font-size: .72rem; white-space: nowrap; }
-      .actions .back-to-top { padding: 8px 3px; }
+      .actions button { width: 100%; min-width: 0; padding: 6px 3px; font-size: .68rem; white-space: nowrap; }
+      .actions .back-to-top { padding: 6px 3px; }
       .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .section-nav { top: 8px; }
     }
@@ -382,8 +378,8 @@
     let editingRecordKind = null;
     const selectedReportIds = new Set();
     const fallbackStorageKey = "daily-vm-floor-walk-checklists";
-    let useLocalStorageFallback = false;
-    let fallbackNoticeShown = false;
+    const fallbackCacheName = "storepulse-checklists-v1";
+    const fallbackCacheKey = new URL(".__storepulse_checklists__", location.href).href;
     let useMemoryFallback = false;
     let memoryFallbackRecords = [];
     const allItems = [];
@@ -927,75 +923,80 @@
         || /denied permission to access the database/i.test(error?.message || "");
     }
 
-    function enableLocalStorageFallback() {
-      useLocalStorageFallback = true;
-    }
-
-    function showLocalStorageFallbackNotice() {
-      if (!fallbackNoticeShown && !useMemoryFallback) {
-        fallbackNoticeShown = true;
-        showError("This browser denied access to its checklist database. StorePulse is saving new checklists in this browser's local storage. Older checklists in the denied database may not appear until database access is restored.");
-      }
-    }
-
     function switchToMemoryFallback(records = memoryFallbackRecords) {
       const firstUse = !useMemoryFallback;
       useMemoryFallback = true;
       memoryFallbackRecords = records;
       if (firstUse) {
-        fallbackNoticeShown = true;
-        showError("This browser blocks both database and local storage. Checklists can be used during this page session, but browser restrictions mean they will not persist after you close or refresh this page.");
+        showError("This browser blocks persistent storage. Checklists will remain only until this page is closed or refreshed. Open StorePulse directly in your browser and allow site storage to keep them.");
       }
     }
 
-    function readFallbackRecords() {
+    async function readFallbackRecords() {
       if (useMemoryFallback) return memoryFallbackRecords;
-      let storage;
-      try {
-        storage = window.localStorage;
-      } catch (error) {
-        if (useLocalStorageFallback) switchToMemoryFallback();
-        return [];
+      if (window.caches) {
+        try {
+          const cache = await caches.open(fallbackCacheName);
+          const response = await cache.match(fallbackCacheKey);
+          if (response) {
+            const records = await response.json();
+            if (!Array.isArray(records)) throw new Error("The browser's backup checklist data is invalid.");
+            return records;
+          }
+        } catch (error) {
+          if (error?.name !== "SecurityError" && error?.name !== "NotAllowedError" && error?.name !== "QuotaExceededError") {
+            throw error;
+          }
+        }
       }
-      if (!storage) {
-        if (useLocalStorageFallback) switchToMemoryFallback();
-        return [];
-      }
+
       let records;
       try {
-        records = JSON.parse(storage.getItem(fallbackStorageKey) || "[]");
+        const storage = window.localStorage;
+        records = JSON.parse(storage?.getItem(fallbackStorageKey) || "[]");
       } catch (error) {
-        if (useLocalStorageFallback && (error?.name === "SecurityError" || error?.name === "NotAllowedError")) {
-          switchToMemoryFallback();
-          return memoryFallbackRecords;
-        }
         if (error instanceof SyntaxError) throw new Error("The browser's backup checklist data is invalid.");
-        throw error;
+        if (error?.name !== "SecurityError" && error?.name !== "NotAllowedError") throw error;
+        switchToMemoryFallback();
+        return memoryFallbackRecords;
       }
       if (!Array.isArray(records)) throw new Error("The browser's backup checklist data is invalid.");
-      if (useLocalStorageFallback) showLocalStorageFallbackNotice();
+      if (records.length) await writeFallbackRecords(records);
       return records;
     }
 
-    function writeFallbackRecords(records) {
+    async function writeFallbackRecords(records) {
       if (useMemoryFallback) {
         switchToMemoryFallback(records);
         return;
       }
-      let storage;
-      try {
-        storage = window.localStorage;
-      } catch {
-        switchToMemoryFallback(records);
-        return;
+
+      if (window.caches) {
+        try {
+          const cache = await caches.open(fallbackCacheName);
+          await cache.put(fallbackCacheKey, new Response(JSON.stringify(records), {
+            headers: { "Content-Type": "application/json" }
+          }));
+          try {
+            window.localStorage?.removeItem(fallbackStorageKey);
+          } catch (error) {
+            if (error?.name !== "SecurityError" && error?.name !== "NotAllowedError") throw error;
+          }
+          return;
+        } catch (error) {
+          if (error?.name !== "SecurityError" && error?.name !== "NotAllowedError" && error?.name !== "QuotaExceededError") {
+            throw error;
+          }
+        }
       }
-      if (!storage) {
-        switchToMemoryFallback(records);
-        return;
-      }
+
       try {
+        const storage = window.localStorage;
+        if (!storage) {
+          switchToMemoryFallback(records);
+          return;
+        }
         storage.setItem(fallbackStorageKey, JSON.stringify(records));
-        showLocalStorageFallbackNotice();
       } catch (error) {
         if (error?.name === "QuotaExceededError") {
           throw new Error("Browser storage is full. Restore database access or remove old checklists before saving more.");
@@ -1010,8 +1011,7 @@
 
     function openSavedDatabase() {
       return new Promise((resolve, reject) => {
-        if (useLocalStorageFallback || !window.indexedDB) {
-          enableLocalStorageFallback();
+        if (!window.indexedDB) {
           resolve(null);
           return;
         }
@@ -1020,7 +1020,6 @@
           request = indexedDB.open("daily-vm-floor-walk");
         } catch (error) {
           if (isDatabasePermissionDenied(error)) {
-            enableLocalStorageFallback();
             resolve(null);
           } else {
             reject(error);
@@ -1034,8 +1033,7 @@
         };
         request.onsuccess = () => {
           const db = request.result;
-          try {
-            const fallbackRecords = readFallbackRecords();
+          readFallbackRecords().then((fallbackRecords) => {
             if (!fallbackRecords.length) {
               resolve(db);
               return;
@@ -1044,24 +1042,29 @@
             const store = transaction.objectStore("checklists");
             fallbackRecords.forEach((record) => store.put(record));
             transaction.oncomplete = () => {
-              try {
-                if (useMemoryFallback) {
-                  memoryFallbackRecords = [];
-                  useMemoryFallback = false;
-                } else {
-                  try {
-                    const storage = window.localStorage;
-                    if (storage) storage.removeItem(fallbackStorageKey);
-                  } catch (error) {
-                    if (error?.name !== "SecurityError" && error?.name !== "NotAllowedError") throw error;
+              if (useMemoryFallback) {
+                memoryFallbackRecords = [];
+                useMemoryFallback = false;
+              } else {
+                try {
+                  const storage = window.localStorage;
+                  if (storage) storage.removeItem(fallbackStorageKey);
+                } catch (error) {
+                  if (error?.name !== "SecurityError" && error?.name !== "NotAllowedError") {
+                    db.close();
+                    reject(error);
+                    return;
                   }
                 }
-                useLocalStorageFallback = false;
-                resolve(db);
-              } catch (error) {
-                db.close();
-                reject(error);
+                if (window.caches) {
+                  caches.open(fallbackCacheName).then((cache) => cache.delete(fallbackCacheKey)).catch((error) => {
+                    if (error?.name !== "SecurityError" && error?.name !== "NotAllowedError") {
+                      showError(`Could not clear restored checklist backup: ${error.message}`);
+                    }
+                  });
+                }
               }
+                resolve(db);
             };
             transaction.onerror = () => {
               db.close();
@@ -1071,14 +1074,13 @@
               db.close();
               reject(transaction.error || new Error("Restoring browser-fallback checklists was cancelled."));
             };
-          } catch (error) {
+          }).catch((error) => {
             db.close();
             reject(error);
-          }
+          });
         };
         request.onerror = () => {
           if (isDatabasePermissionDenied(request.error)) {
-            enableLocalStorageFallback();
             resolve(null);
           } else {
             reject(request.error || new Error("Could not open local checklist storage."));
@@ -1090,11 +1092,11 @@
     async function saveRecord(record) {
       const db = await openSavedDatabase();
       if (!db) {
-        const records = readFallbackRecords();
+        const records = await readFallbackRecords();
         const existingIndex = records.findIndex((savedRecord) => savedRecord.id === record.id);
         if (existingIndex === -1) records.push(record);
         else records[existingIndex] = record;
-        writeFallbackRecords(records);
+        await writeFallbackRecords(records);
         return;
       }
       return new Promise((resolve, reject) => {
@@ -1108,7 +1110,7 @@
 
     async function readRecords() {
       const db = await openSavedDatabase();
-      if (!db) return readFallbackRecords().sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+      if (!db) return (await readFallbackRecords()).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
       return new Promise((resolve, reject) => {
         const transaction = db.transaction("checklists", "readonly");
         const request = transaction.objectStore("checklists").getAll();
@@ -1121,7 +1123,7 @@
 
     async function readRecord(id) {
       const db = await openSavedDatabase();
-      if (!db) return readFallbackRecords().find((record) => record.id === id) || null;
+      if (!db) return (await readFallbackRecords()).find((record) => record.id === id) || null;
       return new Promise((resolve, reject) => {
         const transaction = db.transaction("checklists", "readonly");
         const request = transaction.objectStore("checklists").get(id);
@@ -1135,7 +1137,7 @@
     async function deleteRecord(id) {
       const db = await openSavedDatabase();
       if (!db) {
-        writeFallbackRecords(readFallbackRecords().filter((record) => record.id !== id));
+        await writeFallbackRecords((await readFallbackRecords()).filter((record) => record.id !== id));
         return;
       }
       return new Promise((resolve, reject) => {
