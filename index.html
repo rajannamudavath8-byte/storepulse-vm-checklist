@@ -1646,37 +1646,57 @@
 
     function addDetail(pptx, answer, index, total) {
       const photos = answer.photos || (answer.photo ? [answer.photo] : []);
-      const pageCount = Math.max(1, photos.length);
-      for (let photoIndex = 0; photoIndex < pageCount; photoIndex += 1) {
+      const photosPerSlide = 2;
+      const pageCount = Math.max(1, Math.ceil(photos.length / photosPerSlide));
+      for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
         const slide = pptx.addSlide();
-        const photoLabel = pageCount > 1 ? `  •  Photo ${photoIndex + 1} of ${pageCount}` : "";
-        addBase(pptx, slide, `${answer.group}  •  ${index} of ${total}${photoLabel}`);
+        const firstPhotoIndex = pageIndex * photosPerSlide;
+        const pagePhotos = photos.length
+          ? photos.slice(firstPhotoIndex, firstPhotoIndex + photosPerSlide)
+          : [null];
+        const pageLabel = pageCount > 1 ? `  •  Photos ${firstPhotoIndex + 1}-${Math.min(firstPhotoIndex + photosPerSlide, photos.length)} of ${photos.length}` : "";
+        addBase(pptx, slide, `${answer.group}  •  ${index} of ${total}${pageLabel}`);
         slide.addText(answer.name, {
-          x: 0.55, y: 0.82, w: 7.3, h: 0.8, fontFace: "Aptos Display", fontSize: 27, bold: true, color: "18332D", valign: "mid"
+          x: 0.55, y: 0.78, w: 12.1, h: 0.55, fontFace: "Aptos Display", fontSize: 25, bold: true, color: "18332D", valign: "mid"
         });
         const color = answer.status === "Yes" ? "1261DF" : answer.status === "No" ? "A53B35" : "61718F";
         const statusText = answer.status === "Yes" ? "IN ORDER"
           : answer.status === "No" ? "NEEDS ATTENTION"
             : "NOT APPLICABLE";
         slide.addShape(pptx.ShapeType.roundRect, {
-          x: 0.58, y: 1.82, w: 3.25, h: 0.48, rectRadius: 0.08,
+          x: 0.58, y: 1.42, w: 3.25, h: 0.42, rectRadius: 0.08,
           line: { color, transparency: 100 }, fill: { color }
         });
         slide.addText(statusText, {
-          x: 0.72, y: 1.92, w: 2.97, h: 0.2, fontFace: "Aptos", fontSize: 12, bold: true, color: "FFFFFF", align: "center", margin: 0
+          x: 0.72, y: 1.52, w: 2.97, h: 0.2, fontFace: "Aptos", fontSize: 11, bold: true, color: "FFFFFF", align: "center", margin: 0
         });
+
+        const photoGap = 0.24;
+        const photoWidth = pagePhotos.length === 1 ? 12.0 : (12.0 - photoGap) / 2;
+        const photoY = 1.98;
+        const photoHeight = 2.82;
+        pagePhotos.forEach((photo, photoIndex) => {
+          const photoX = 0.66 + photoIndex * (photoWidth + photoGap);
+          slide.addShape(pptx.ShapeType.roundRect, {
+            x: photoX, y: photoY, w: photoWidth, h: photoHeight, rectRadius: 0.08,
+            line: { color: "DCE5DF", pt: 1 }, fill: { color: "FFFFFF" }
+          });
+          addPhoto(slide, photo, {
+            x: photoX + 0.12, y: photoY + 0.12, w: photoWidth - 0.24, h: photoHeight - 0.24
+          });
+        });
+
         slide.addText("OBSERVATION / FOLLOW-UP", {
-          x: 0.6, y: 2.72, w: 5.55, h: 0.25, fontFace: "Aptos", fontSize: 10, bold: true, charSpacing: 0.8, color: "63746F"
-        });
-        slide.addText(answer.note || "No observation recorded.", {
-          x: 0.6, y: 3.08, w: 5.45, h: 2.55, fontFace: "Aptos", fontSize: 16, color: answer.note ? "18332D" : "87948F",
-          valign: "top", breakLine: false, margin: 0.04
+          x: 0.66, y: 5.08, w: 12.0, h: 0.25, fontFace: "Aptos", fontSize: 10, bold: true, charSpacing: 0.8, color: "63746F"
         });
         slide.addShape(pptx.ShapeType.roundRect, {
-          x: 6.45, y: 1.35, w: 6.25, h: 4.8, rectRadius: 0.08,
+          x: 0.66, y: 5.42, w: 12.0, h: 1.25, rectRadius: 0.08,
           line: { color: "DCE5DF", pt: 1 }, fill: { color: "FFFFFF" }
         });
-        addPhoto(slide, photos[photoIndex], { x: 6.65, y: 1.55, w: 5.85, h: 4.4 });
+        slide.addText(answer.note || "No observation recorded.", {
+          x: 0.86, y: 5.58, w: 11.6, h: 0.9, fontFace: "Aptos", fontSize: 15, color: answer.note ? "18332D" : "87948F",
+          valign: "top", breakLine: false, margin: 0.04, fit: "shrink"
+        });
       }
     }
 
