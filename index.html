@@ -976,7 +976,40 @@
             request.result.createObjectStore("checklists", { keyPath: "id" });
           }
         };
-        request.onsuccess = () => resolve(request.result);
+        request.onsuccess = () => {
+          const db = request.result;
+          try {
+            const fallbackRecords = readFallbackRecords();
+            if (!fallbackRecords.length) {
+              resolve(db);
+              return;
+            }
+            const transaction = db.transaction("checklists", "readwrite");
+            const store = transaction.objectStore("checklists");
+            fallbackRecords.forEach((record) => store.put(record));
+            transaction.oncomplete = () => {
+              try {
+                localStorage.removeItem(fallbackStorageKey);
+                useLocalStorageFallback = false;
+                resolve(db);
+              } catch (error) {
+                db.close();
+                reject(error);
+              }
+            };
+            transaction.onerror = () => {
+              db.close();
+              reject(transaction.error || new Error("Could not restore browser-fallback checklists."));
+            };
+            transaction.onabort = () => {
+              db.close();
+              reject(transaction.error || new Error("Restoring browser-fallback checklists was cancelled."));
+            };
+          } catch (error) {
+            db.close();
+            reject(error);
+          }
+        };
         request.onerror = () => {
           if (isDatabasePermissionDenied(request.error)) {
             enableLocalStorageFallback();
