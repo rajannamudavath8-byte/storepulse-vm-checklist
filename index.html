@@ -641,7 +641,7 @@
       cameraInput.id = `${id}-camera`;
       cameraInput.type = "file";
       cameraInput.accept = "image/*";
-      cameraInput.capture = "environment";
+      cameraInput.setAttribute("capture", "environment");
       cameraInput.setAttribute("aria-label", `Take a photo for NPT brand ${document.querySelectorAll(".npt-entry").length + 1}`);
       cameraLabel.append(cameraInput);
       const galleryLabel = document.createElement("label");
