@@ -929,6 +929,9 @@
 
     function enableLocalStorageFallback() {
       useLocalStorageFallback = true;
+    }
+
+    function showLocalStorageFallbackNotice() {
       if (!fallbackNoticeShown && !useMemoryFallback) {
         fallbackNoticeShown = true;
         showError("This browser denied access to its checklist database. StorePulse is saving new checklists in this browser's local storage. Older checklists in the denied database may not appear until database access is restored.");
@@ -936,9 +939,10 @@
     }
 
     function switchToMemoryFallback(records = memoryFallbackRecords) {
+      const firstUse = !useMemoryFallback;
       useMemoryFallback = true;
       memoryFallbackRecords = records;
-      if (!fallbackNoticeShown) {
+      if (firstUse) {
         fallbackNoticeShown = true;
         showError("This browser blocks both database and local storage. Checklists can be used during this page session, but browser restrictions mean they will not persist after you close or refresh this page.");
       }
@@ -969,7 +973,7 @@
         throw error;
       }
       if (!Array.isArray(records)) throw new Error("The browser's backup checklist data is invalid.");
-      if (useLocalStorageFallback) enableLocalStorageFallback();
+      if (useLocalStorageFallback) showLocalStorageFallbackNotice();
       return records;
     }
 
@@ -991,7 +995,7 @@
       }
       try {
         storage.setItem(fallbackStorageKey, JSON.stringify(records));
-        enableLocalStorageFallback();
+        showLocalStorageFallbackNotice();
       } catch (error) {
         if (error?.name === "QuotaExceededError") {
           throw new Error("Browser storage is full. Restore database access or remove old checklists before saving more.");
