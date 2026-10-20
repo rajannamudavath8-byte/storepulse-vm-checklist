@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#312e81">
+  <link rel="manifest" href="./manifest.webmanifest">
   <title>StorePulse — VM Audit</title>
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
   <style>
@@ -40,6 +41,7 @@
     }
 
     header {
+      position: relative;
       padding: 30px max(22px, calc((100% - 1100px) / 2));
       background: linear-gradient(112deg, #071d55 0%, #0a3fae 48%, #6323aa 52%, #32116f 100%);
       color: #fff;
@@ -50,19 +52,19 @@
     header h1 { display: flex; margin: 0; font-size: clamp(1.75rem, 3vw, 2.1rem); line-height: 1.15; letter-spacing: .015em; }
     header h1 span:last-child { color: #55a4ff; }
     header p { margin: 2px 0 0; color: #d9e8ff; font-size: var(--font-size-sm); letter-spacing: .02em; }
+    .home-button { position: absolute; top: 24px; right: max(22px, calc((100% - 1100px) / 2)); display: grid; place-items: center; width: 42px; height: 42px; padding: 9px; border: 1px solid #ffffff66; background: #ffffff18; }
+    .home-button:hover { background: #ffffff30; }
+    .home-button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
     main { width: min(1100px, calc(100% - 32px)); margin: 18px auto 44px; }
-    .app-nav { position: sticky; top: 0; z-index: 5; display: flex; justify-content: center; gap: 8px; padding: 10px 14px; background: #fff; border-bottom: 1px solid var(--line); box-shadow: 0 3px 14px #18332d0d; }
-    .app-nav button { display: inline-flex; align-items: center; gap: 9px; padding: 9px 15px; background: transparent; color: var(--muted); border: 1px solid transparent; font-size: var(--font-size-sm); }
-    .app-nav button:hover { background: #f1efff; color: var(--purple-dark); }
-    .app-nav button[aria-current="page"] { color: var(--purple-dark); border-color: #d8c9f2; background: linear-gradient(90deg, #edf4ff 0 50%, #f5efff 50% 100%); }
-    .app-nav svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     [data-screen][hidden] { display: none !important; }
+    .dashboard-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .dashboard-heading h2 { margin: 0; }
+    .dashboard-heading button { flex: 0 0 auto; }
     .dashboard-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
     .metric-card { padding: 17px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
     .metric-card span { display: block; color: var(--muted); font-size: var(--font-size-sm); }
     .metric-card strong { display: block; margin-top: 5px; color: var(--purple-dark); font-size: 1.8rem; line-height: 1.2; }
-    .dashboard-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
     .primary-blue { background: var(--blue); }
     .primary-blue:hover { background: var(--blue-dark); }
     .status-unavailable { color: var(--muted); font-weight: 700; }
@@ -89,12 +91,6 @@
     .full { grid-column: 1 / -1; }
     .hint { color: var(--muted); font-size: .8125rem; font-weight: 400; }
 
-    .progress-wrap { margin-top: 17px; }
-    .progress-line { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px; font-size: var(--font-size-sm); }
-    .progress-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-    .progress-actions button { padding: 7px 12px; font-size: var(--font-size-sm); }
-    progress { width: 100%; height: 12px; accent-color: var(--blue); }
-    #progressText { color: var(--muted); }
 
     .category { margin: 12px 0; overflow: hidden; }
     .category-heading { padding: 14px 18px; background: linear-gradient(90deg, #edf4ff 0 50%, #f4efff 50% 100%); border-bottom: 1px solid var(--line); }
@@ -107,12 +103,6 @@
     .section-nav button.active { background: var(--purple); }
     .section-nav .nav-count { margin-left: 5px; opacity: .78; }
     .saved-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-    .reports-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
-    .reports-heading h2 { margin: 0; }
-    .report-search-toggle { display: inline-grid; place-items: center; width: 40px; height: 40px; padding: 8px; }
-    .report-search-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-    .report-search-label { display: block; max-width: 360px; margin: 0 0 12px auto; }
-    .report-search-label[hidden] { display: none; }
     .saved-filters button[aria-pressed="true"] { background: var(--purple-dark); color: #fff; }
     .item { padding: 14px; border-bottom: 1px solid var(--line); }
     .item:last-child { border-bottom: 0; }
@@ -120,6 +110,10 @@
     .item-title { margin: 0 0 9px; font-size: var(--font-size-base); font-weight: 650; line-height: 1.4; }
     .item-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
     .photo-field { grid-column: 1 / -1; }
+    .observation-points { display: grid; gap: 8px; margin-top: 12px; }
+    .observation-point { display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: start; gap: 8px; }
+    .observation-point > span { display: grid; place-items: center; width: 26px; height: 26px; margin-top: 5px; border-radius: 50%; background: #edf4ff; color: var(--blue-dark); font-size: .8rem; font-weight: 700; }
+    .observation-point textarea { min-height: 48px; }
     .photo-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 8px; }
     .photo-pick-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 9px 13px; border: 1px solid #c8d3f2; border-radius: 9px; background: #f5f7ff; color: var(--blue-dark); font-weight: 700; cursor: pointer; }
     .photo-pick-button:hover { background: #e9edff; border-color: var(--blue); }
@@ -127,7 +121,6 @@
     .photo-pick-button svg { width: 19px; height: 19px; flex: 0 0 auto; }
     .photo-pick-button input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); border: 0; }
     .photo-previews { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 9px; }
-    .photo-count { margin-top: 5px; color: var(--muted); font-size: .84rem; }
     .photo-thumb { position: relative; width: 110px; height: 90px; }
     .photo-thumb img { width: 100%; height: 100%; border: 1px solid var(--line); border-radius: 8px; object-fit: cover; }
     .photo-thumb button { position: absolute; top: 4px; right: 4px; padding: 2px 7px; border-radius: 50%; background: #18332ddd; line-height: 1.4; }
@@ -135,12 +128,21 @@
     .photo-required { color: var(--amber); }
     .status-select option { color: var(--ink); }
     .availability-field { max-width: 440px; margin: 10px 14px; padding: 10px; border: 1px solid #d4def5; border-radius: 9px; background: #f5f8ff; }
+    fieldset { min-width: 0; }
+    .availability-field label, .status-field label { display: inline-flex; align-items: center; gap: 6px; margin: 8px 14px 2px 0; cursor: pointer; }
+    input[type="radio"] { width: auto; min-width: 18px; min-height: 18px; accent-color: var(--blue); }
+    .status-field { margin: 10px 0; padding: 10px; border: 1px solid var(--line); border-radius: 9px; }
     .touchpoint-gate { margin-top: 0; }
     .conditional-audit[hidden] { display: none !important; }
     .npt-list { display: grid; gap: 12px; }
-    .npt-entry { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(220px, 1.2fr) auto; gap: 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
-    .npt-entry .photo-field { grid-column: auto; }
-    .npt-add { margin-top: 12px; }
+    .npt-entry { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+    .npt-entry .photo-field, .npt-entry .observation-points { grid-column: 1 / -1; }
+    .npt-name-row, .npt-add-row { display: grid; grid-template-columns: minmax(0, 1fr) 40px; gap: 8px; align-items: end; }
+    .npt-name-row { margin-bottom: 2px; }
+    .npt-name-row strong { align-self: center; }
+    .npt-add-row { margin-bottom: 12px; }
+    .npt-icon-button { display: inline-grid; place-items: center; width: 40px; height: 40px; padding: 7px; }
+    .npt-icon-button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     .actions {
       display: flex;
@@ -166,7 +168,6 @@
       cursor: pointer;
     }
     button:hover { background: var(--green-dark); }
-    .app-nav button:hover { background: #f1efff; }
     .conditional-audit button:not(.secondary):not(.danger) { background: var(--blue); }
     .conditional-audit button:not(.secondary):not(.danger):hover { background: var(--blue-dark); }
     button.secondary { background: #f1eaff; color: var(--purple-dark); border: 1px solid #d9c8f3; }
@@ -177,9 +178,24 @@
     .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
     .actions .button-row { flex-wrap: nowrap; gap: 7px; }
     .actions button { padding: 5px 10px; font-size: .82rem; }
+    #saveState { margin-right: auto; }
+    #observationCamera, #observationGallery { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    #observationsContent { padding: 14px; }
     .back-to-top { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; }
     .back-to-top[hidden] { display: none; }
     .success-dialog { width: min(440px, calc(100% - 32px)); padding: 32px 28px 26px; border: 0; border-radius: 18px; color: var(--ink); text-align: center; box-shadow: 0 20px 60px #18332d40; overflow: hidden; }
+    #viewDialog { width: min(900px, calc(100% - 32px)); max-height: min(85vh, 900px); overflow: auto; text-align: left; }
+    .audit-summary section { padding: 10px 0; border-top: 1px solid var(--line); }
+    .audit-summary p { white-space: pre-line; }
+    .audit-summary img { width: min(160px, 30vw); height: 120px; margin: 4px; object-fit: cover; border-radius: 8px; }
+    .audit-summary .summary-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .audit-summary .summary-editor { display: grid; gap: 10px; margin-top: 10px; }
+    .audit-summary .summary-editor fieldset { border: 1px solid var(--line); border-radius: 8px; }
+    .audit-summary .summary-editor fieldset label { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; }
+    .audit-summary .summary-editor fieldset input { width: auto; }
+    .audit-summary .summary-editor input[type="file"] { max-width: 100%; }
+    .summary-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    #viewError { color: var(--red); }
     .success-dialog::backdrop { background: #17231f66; backdrop-filter: blur(3px); }
     .success-icon { display: grid; place-items: center; width: 142px; height: 142px; margin: 2px auto 20px; border-radius: 50%; background: #6655ee; color: #fff; font-size: 100px; line-height: 1; font-weight: 300; }
     .success-dialog h2 { margin: 0 0 14px; font-size: 1.55rem; }
@@ -201,6 +217,9 @@
     .saved-entry p { margin: 0; }
     .saved-entry .hint { display: block; }
     .empty-state { margin: 0; color: var(--muted); }
+    .dashboard-loading { margin: 0 0 10px; color: var(--muted); }
+    .dashboard-loading[hidden] { display: none; }
+    .dashboard-loading.load-failed { color: var(--red); }
     .version-history { display: grid; gap: 8px; width: 100%; padding-top: 10px; }
     .version-history[hidden] { display: none; }
     .error { display: none; padding: 11px 14px; margin: 14px 0 0; border-radius: 8px; background: #fff0ee; color: var(--red); }
@@ -209,21 +228,23 @@
 
     @media (max-width: 640px) {
       header { padding: 24px 18px; }
-      .app-nav { position: fixed; inset: auto 0 0; justify-content: space-around; padding: 7px 4px max(7px, env(safe-area-inset-bottom)); border: 1px solid var(--line); border-radius: 14px 14px 0 0; }
-      .app-nav button { flex: 1; flex-direction: column; gap: 2px; padding: 6px 4px; font-size: .78rem; }
-      .app-nav svg { width: 23px; height: 23px; }
-      main { width: min(100% - 20px, 1100px); margin-top: 12px; margin-bottom: 92px; }
+
+      main { width: min(100% - 20px, 1100px); margin-top: 12px; margin-bottom: 44px; }
       .panel { padding: 16px; }
       .meta-grid, .item-grid, .item-fields { grid-template-columns: 1fr; }
       .full, .photo-field { grid-column: auto; }
       .npt-entry { grid-template-columns: 1fr; }
+      .npt-name-row, .npt-add-row { grid-template-columns: minmax(0, 1fr) 40px; }
       .category-heading { padding: 12px; }
-      .actions { justify-content: stretch; padding: 6px; }
+      .actions { flex-direction: column; align-items: stretch; padding: 8px; }
       .actions .button-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; gap: 5px; }
-      .actions button { width: 100%; min-width: 0; padding: 6px 3px; font-size: .68rem; white-space: nowrap; }
+      .actions button { width: 100%; min-width: 0; min-height: 42px; padding: 6px 3px; font-size: .75rem; white-space: nowrap; }
       .actions .back-to-top { padding: 6px 3px; }
       .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .section-nav { top: 8px; }
+      .dashboard-heading { align-items: flex-start; }
+      .dashboard-heading button { padding: 8px 10px; }
+      .home-button { top: 18px; right: 18px; }
     }
   </style>
 </head>
@@ -236,73 +257,58 @@
       <h1><span>STORE</span><span>PULSE</span></h1>
     </div>
     <p>Smarter Audits. Better Stores. Greater Performance.</p>
+    <button id="homeButton" class="home-button" type="button" aria-label="Home" title="Home">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"></path></svg>
+    </button>
   </header>
-
-  <nav class="app-nav" aria-label="Main navigation">
-    <button type="button" data-app-view="dashboard" aria-current="page" title="Dashboard overview">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1"></rect><rect x="13" y="3" width="8" height="5" rx="1"></rect><rect x="13" y="10" width="8" height="11" rx="1"></rect><rect x="3" y="13" width="8" height="8" rx="1"></rect></svg><span>Dashboard</span>
-    </button>
-    <button type="button" data-app-view="checklist" title="Complete audit checklist">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4.5h6M8 11l2 2 5-5M8 17h8"></path></svg><span>Checklist</span>
-    </button>
-    <button type="button" data-app-view="reports" title="Submitted reports and history">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"></path><path d="M14 3v5h5M9 17v-3M13 17v-6M17 17v-5"></path></svg><span>Reports</span>
-    </button>
-  </nav>
 
   <main>
     <section class="panel" id="dashboardScreen" data-screen="dashboard" aria-labelledby="dashboard-heading">
-      <h2 id="dashboard-heading">Welcome to StorePulse</h2>
+      <div class="dashboard-heading">
+        <h2 id="dashboard-heading">Daily Audit System</h2>
+        <button id="dashboardNew" class="primary-blue" type="button">＋ New Checklist</button>
+      </div>
       <p id="dashboardStore" class="intro">Start a checklist to see the selected store and audit summary.</p>
       <div class="dashboard-grid">
-        <article class="metric-card"><span>Total saved audits</span><strong id="metricTotal">0</strong></article>
+        <article class="metric-card"><span>Total Audit</span><strong id="metricTotal">0</strong></article>
         <article class="metric-card"><span>Submitted</span><strong id="metricSubmitted">0</strong></article>
+        <article class="metric-card"><span>In Progress</span><strong id="metricInProgress">0</strong></article>
         <article class="metric-card"><span>Drafts</span><strong id="metricDrafts">0</strong></article>
-        <article class="metric-card"><span>Completion</span><strong id="metricCompletion">0%</strong></article>
       </div>
-      <div class="dashboard-actions">
-        <button id="dashboardNew" class="primary-blue" type="button">＋ Start new audit</button>
-        <button id="dashboardReports" class="secondary" type="button">▤ View reports</button>
-      </div>
-      <h3>Recent activity</h3>
-      <div id="recentActivity" class="saved-list"><p class="empty-state">No audits saved on this device yet.</p></div>
+      <h3>Recent Activity</h3>
+      <p id="dashboardLoading" class="dashboard-loading" role="status" aria-live="polite">Loading saved audits…</p>
+      <div id="recentActivity" class="saved-list" aria-busy="true"><p class="empty-state">Loading saved audits…</p></div>
+      <p class="hint">Audits are stored only on this device. Clearing Chrome site data, losing the device, or some uninstall scenarios may remove them. There is no cloud backup or cross-device sync.</p>
     </section>
 
     <section class="panel" data-screen="checklist" aria-labelledby="visit-heading">
-      <h2 id="visit-heading">Visual Merchandiser Floor Walk Checklist</h2>
+      <h2 id="visit-heading">Store Details</h2>
       <div class="meta-grid">
         <label>
-          <span>Site name <b aria-hidden="true">*</b></span>
+          <span>Walk Date <b aria-hidden="true">*</b></span>
+          <input id="walkDate" type="date" required>
+        </label>
+        <label>
+          <span>Store Name <b aria-hidden="true">*</b></span>
           <select id="site" required>
-            <option value="">Select a site</option>
-            <option>P497 — PT-ASHOKA GOLDEN MALL-HYDERABAD</option>
-            <option>P053 — PT-INORBIT MALL MADHAPUR-HYDERABAD</option>
-            <option>P096 — PT-FORUM SUJANA MALL-HYDERABAD</option>
-            <option>P202 — PT-SARATH CITY MALL-HYDERABAD</option>
-            <option>P215 — PT-L&amp;T PANJAGUTTA-HYDERABAD</option>
-            <option>P376 — PT-MUKURAMPURA-KARIMNAGAR</option>
-            <option>P379 — PT-HANAMKONDA-WARANGAL</option>
-            <option>P460 — PT-KOMPALLY-HYDERABAD</option>
-            <option>P670 — PT-BANDLAGUDA-HYDERABAD</option>
-            <option>P704 — PT-RC PURAM-HYDERABAD</option>
-            <option>P715 — PT-MADEENAGUDA-HYDERABAD</option>
+            <option value="">Select a store</option>
+            <option>P497 – PT-ASHOKA GOLDEN MALL-HYDERABAD</option>
+            <option>P053 – PT-INORBIT MALL MADHAPUR-HYDERABAD</option>
+            <option>P096 – PT-FORUM SUJANA MALL-HYDERABAD</option>
+            <option>P202 – PT-SARATH CITY MALL-HYDERABAD</option>
+            <option>P215 – PT-L&amp;T PANJAGUTTA-HYDERABAD</option>
+            <option>P376 – PT-MUKURAMPURA-KARIMNAGAR</option>
+            <option>P379 – PT-HANAMKONDA-WARANGAL</option>
+            <option>P460 – PT-KOMPALLY-HYDERABAD</option>
+            <option>P670 – PT-BANDLAGUDA-HYDERABAD</option>
+            <option>P704 – PT-RC PURAM-HYDERABAD</option>
+            <option>P715 – PT-MADEENAGUDA-HYDERABAD</option>
           </select>
         </label>
         <label>
-          <span>Walk completed by <b aria-hidden="true">*</b></span>
+          <span>Auditor Name <b aria-hidden="true">*</b></span>
           <input id="auditor" type="text" autocomplete="name" placeholder="Name" required>
         </label>
-        <label>
-          <span>Walk date <b aria-hidden="true">*</b></span>
-          <input id="walkDate" type="date" required>
-        </label>
-      </div>
-      <div class="progress-wrap">
-        <div class="progress-line"><strong>Checklist progress</strong><span id="progressText">Confirm brand availability to begin the audit.</span></div>
-        <progress id="progress" max="29" value="0" aria-label="Checklist completion"></progress>
-        <div class="progress-actions">
-          <button id="nextIncomplete" class="secondary" type="button">↓ Next incomplete brand</button>
-        </div>
       </div>
     </section>
 
@@ -311,17 +317,46 @@
 
     <section class="panel" data-screen="checklist" aria-labelledby="npt-heading">
       <div class="category-heading">
-        <h2 id="npt-heading">NPT brands <span class="hint">— optional</span></h2>
-        <button id="nptToggle" class="secondary category-toggle" type="button" aria-expanded="true" aria-controls="nptContent" aria-label="Collapse NPT brands">−</button>
+        <h2 id="npt-heading">NPT Brands</h2>
+        <button id="nptToggle" class="secondary category-toggle" type="button" aria-expanded="false" aria-controls="nptContent" aria-label="Expand NPT Brands">+</button>
       </div>
-      <div id="nptContent" class="category-contents">
+      <div id="nptContent" class="category-contents" hidden>
+        <div class="npt-add-row">
+          <label for="nptBrandName"><span>Brand Name</span><input id="nptBrandName" type="text" maxlength="100" placeholder="Enter brand name"></label>
+          <button id="addNptBrand" class="secondary npt-icon-button" type="button" aria-label="Add brand" title="Add brand">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          </button>
+        </div>
         <div id="nptList" class="npt-list"></div>
-        <button id="addNptBrand" class="secondary npt-add" type="button">＋ Add NPT brand</button>
+      </div>
+    </section>
+
+    <section class="panel" data-screen="checklist" aria-labelledby="observations-heading">
+      <div class="category-heading">
+        <h2 id="observations-heading">Issues / Observations</h2>
+        <button id="observationsToggle" class="secondary category-toggle" type="button" aria-expanded="false" aria-controls="observationsContent" aria-label="Expand Issues / Observations">+</button>
+      </div>
+      <div id="observationsContent" class="category-contents" hidden>
+        <div class="photo-actions">
+          <label class="photo-pick-button" title="Take photo" aria-label="Take photo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h-4l-1.5 2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L14 4Z"/><circle cx="12" cy="12.5" r="3.2"/></svg>
+            <input id="observationCamera" type="file" accept="image/*" capture="environment" aria-label="Capture observation photo">
+          </label>
+          <label class="photo-pick-button" title="Choose from gallery" aria-label="Choose from gallery">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>
+            <input id="observationGallery" type="file" accept="image/*" multiple aria-label="Choose observation photos from gallery">
+          </label>
+        </div>
+        <div id="observationPhotoPreview" class="photo-previews" aria-live="polite"></div>
+        <div id="walkObservationPoints" class="observation-points" aria-label="Observation and follow-up points">
+          <strong>Issues / Observations</strong>
+        </div>
       </div>
     </section>
 
     <div id="error" class="error" role="alert"></div>
     <div class="actions" data-screen="checklist">
+      <span id="saveState" class="hint" role="status" aria-live="polite"></span>
       <div class="button-row">
         <button id="newChecklist" class="secondary" type="button">⟳ Restart</button>
         <button id="saveDraft" class="secondary" type="button">▣ Save draft</button>
@@ -329,20 +364,6 @@
         <button id="backToTop" class="secondary back-to-top" type="button" aria-label="Back to top" hidden>↑ Top</button>
       </div>
     </div>
-    <section class="panel" data-screen="reports" aria-labelledby="saved-heading">
-      <div class="reports-heading">
-        <h2 id="saved-heading">Reports</h2>
-        <button id="reportSearchToggle" class="secondary report-search-toggle" type="button" aria-label="Search reports" aria-expanded="false" aria-controls="reportSearchLabel" title="Search reports">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg>
-        </button>
-      </div>
-      <label id="reportSearchLabel" class="report-search-label" hidden>
-        <span>Search reports</span>
-        <input id="reportSearch" type="search" placeholder="Search by store, site code, auditor or date">
-      </label>
-      <div id="savedList" class="saved-list"><p class="empty-state">Loading reports…</p></div>
-    </section>
-
   </main>
 
   <dialog id="successDialog" class="success-dialog" aria-labelledby="successTitle" aria-describedby="successDetails">
@@ -353,15 +374,24 @@
     <p id="successTimestamp" class="success-timestamp"></p>
     <button id="successOk" type="button">OK</button>
   </dialog>
+  <dialog id="viewDialog" class="success-dialog" aria-labelledby="viewTitle">
+    <h2 id="viewTitle">Audit summary</h2>
+    <div id="viewSummary" class="audit-summary"></div>
+    <p id="viewError" role="alert" hidden></p>
+    <div class="summary-actions">
+      <button id="viewEditAudit" class="secondary" type="button">✎ Edit audit</button>
+      <button id="viewClose" type="button">Close</button>
+    </div>
+  </dialog>
 
   <script>
     const groups = [
       { title: "VM Touch Point", items: ["POP SHOP", "Trend Spots"] },
-      { title: "Ethnic", items: ["PT-RANGMANCH", "PT-AKKRITI", "PT-MARIGOLD LANE"] },
-      { title: "Western", items: ["PT-HONEY", "PT-PEOPLE", "PT-ANNABELLE", "PT-AJILE (W)", "PT-DREAMZ", "PT-SF JEANS (W)"] },
-      { title: "Men's", items: ["PT-PEREGRINE", "PT-AJILE (M)", "PT-STREET 808", "PT-PEOPLE (M)", "PT-SF JEANS (M)", "PT-INDUS ROUTE", "PT-7 ALT"] },
-      { title: "Kid's", items: ["PT-0-2 YRS INFANTS", "PT-2-7 YRS GIRLS", "PT-7-14 YRS GIRLS", "PT-2-7 YRS BOYS", "PT-7-14 YRS BOYS", "PT-AKKRITI KIDS", "PT-INDUS ROUTE KIDS"] },
-      { title: "Non-Apparel", items: ["PT-FOOTWEAR WOMENS", "PT-FOOTWEAR KIDS", "PT-HANDBAGS", "PT-IMPULSE"] }
+      { title: "ETHNIC", items: ["RANGMANCH", "AKKRITI", "MARIGOLD LANE"] },
+      { title: "WESTERN", items: ["HONEY", "PEOPLE", "ANNABELLE", "AJILE (W)", "DREAMZ", "SF JEANS (W)"] },
+      { title: "MEN’S", items: ["PEREGRINE", "AJILE (M)", "STREET 808", "PEOPLE (M)", "SF JEANS (M)", "INDUS ROUTE", "7 ALT"] },
+      { title: "KID’S", items: ["0-2 YRS INFANTS", "2-7 YRS GIRLS", "7-14 YRS GIRLS", "2-7 YRS BOYS", "7-14 YRS BOYS", "AKKRITI KIDS", "INDUS ROUTE KIDS"] },
+      { title: "NON APP’S", items: ["FOOTWEAR WOMENS", "FOOTWEAR KIDS", "HANDBAGS", "IMPULSE"] }
     ];
 
     const checklist = document.getElementById("checklist");
@@ -370,6 +400,12 @@
     let nextNptBrandId = 0;
     let editingRecordId = null;
     let editingRecordKind = null;
+    let observationPhotos = [];
+    let autoSaveTimer = null;
+    let autoSaveQueue = Promise.resolve();
+    let autoSaveRevision = 0;
+    let dashboardRenderRevision = 0;
+    let viewingRecordId = null;
     const fallbackStorageKey = "daily-vm-floor-walk-checklists";
     const fallbackCacheName = "storepulse-checklists-v1";
     const fallbackCacheKey = new URL(".__storepulse_checklists__", location.href).href;
@@ -391,8 +427,8 @@
       const toggle = document.createElement("button");
       toggle.className = "secondary category-toggle";
       toggle.type = "button";
-      toggle.textContent = "−";
-      toggle.setAttribute("aria-expanded", "true");
+      toggle.textContent = "+";
+      toggle.setAttribute("aria-expanded", "false");
       toggle.setAttribute("aria-controls", `category-content-${groupIndex}`);
       toggle.setAttribute("aria-label", `Collapse ${group.title}`);
       heading.append(title, toggle);
@@ -400,6 +436,7 @@
       const contents = document.createElement("div");
       contents.className = "category-contents";
       contents.id = `category-content-${groupIndex}`;
+      contents.hidden = true;
       categorySections[groupIndex] = section;
       group.items.forEach((name, itemIndex) => {
         const id = "item-" + groupIndex + "-" + itemIndex;
@@ -411,43 +448,37 @@
         article.innerHTML = `
           <div class="item-grid">
             <div class="availability-and-audit">
-              <label class="availability-field"><span>Does your store have ${escapeHtml(name)}?</span>
-                <select class="availability-select" id="${id}-availability">
-                  <option value="">Select availability</option>
-                  <option value="Yes">Yes — Brand available</option>
-                  <option value="No">No — Brand not available</option>
-                </select>
-              </label>
+              <fieldset class="availability-field">
+                <legend>Does your store have ${escapeHtml(name)}?</legend>
+                <label><input type="radio" name="${id}-availability" value="Yes"> Yes</label>
+                <label><input type="radio" name="${id}-availability" value="No"> No</label>
+              </fieldset>
               <div class="conditional-audit" id="${id}-audit" hidden>
                 <p class="item-title">${escapeHtml(name)}</p>
-                <label for="${id}-status"><span>Is the brand displayed as per SDM? <b aria-hidden="true">*</b></span></label>
-                <select class="status-select" id="${id}-status" required>
-                  <option value="">Select status</option>
-                  <option value="Yes">Yes — In order</option>
-                  <option value="No">No — Needs attention</option>
-                  <option value="N/A">N/A — Not applicable</option>
-                </select>
+                <fieldset class="status-field">
+                  <legend>Is the brand displayed as per SDM?</legend>
+                    <label><input type="radio" name="${id}-status" value="Yes"> Yes</label>
+                    <label><input type="radio" name="${id}-status" value="No"> No</label>
+                </fieldset>
               </div>
             </div>
             <div class="item-fields conditional-audit" id="${id}-details" hidden>
-              <label class="full"><span>Observation / follow-up <span class="hint">(optional)</span></span>
-                <textarea id="${id}-note" maxlength="300" placeholder="Add an observation or action needed"></textarea>
-              </label>
-              <div class="photo-field"><span>Brand/display photos <span class="hint photo-required">(up to 10; required for Yes or No)</span></span>
+              <div class="photo-field"><span>Upload image of Brand</span>
                 <div class="photo-actions">
-                  <label class="photo-pick-button">
+                  <label class="photo-pick-button" title="Take photo">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h-4l-1.5 2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L14 4Z"/><circle cx="12" cy="12.5" r="3.2"/></svg>
-                    <span>Take photo</span>
                     <input id="${id}-camera" type="file" accept="image/*" capture="environment" aria-label="Take a photo for ${escapeHtml(name)}">
                   </label>
-                  <label class="photo-pick-button">
+                  <label class="photo-pick-button" title="Choose from gallery">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>
-                    <span>Choose from gallery</span>
                     <input id="${id}-photo" type="file" accept="image/*" multiple aria-label="Choose photos from gallery for ${escapeHtml(name)}">
                   </label>
                 </div>
-                <span class="photo-count hint" data-photo-count-for="${id}" aria-live="polite">0 / 10 images</span>
                 <div id="${id}-preview" class="photo-previews" aria-live="polite"></div>
+              </div>
+              <div class="observation-points" aria-label="Issues and observations for ${escapeHtml(name)}">
+                <strong>Issues / Observations</strong>
+                ${observationPointMarkup(id)}
               </div>
             </div>
           </div>`;
@@ -518,9 +549,43 @@
       })[char]);
     }
 
+    function displayBrandName(name) {
+      return String(name || "").replace(/^PT-/i, "");
+    }
+
+    function observationPointMarkup(prefix, values = []) {
+      const value = values.filter(Boolean).join("\n");
+      return `<textarea id="${prefix}-observation-1" maxlength="900" rows="3">${escapeHtml(value)}</textarea>`;
+    }
+
+    function getObservationPoints(prefix) {
+      const value = document.getElementById(`${prefix}-observation-1`).value.trim();
+      return value ? [value] : [];
+    }
+
+    function setObservationPoints(prefix, points, legacyText = "") {
+      const values = Array.isArray(points) ? points : [];
+      const migrated = values.length ? values.filter(Boolean).join("\n") : legacyText;
+      document.getElementById(`${prefix}-observation-1`).value = migrated || "";
+    }
+
+    function formatObservationPoints(points, legacyText = "") {
+      const values = Array.isArray(points) ? points : [];
+      const populated = values.filter(Boolean);
+      if (!populated.length && legacyText) populated.push(legacyText);
+      return populated.join("\n");
+    }
+
+    function sdmAnswerLabel(answer) {
+      if (answer === "Yes") return "Yes, displayed";
+      if (answer === "No") return "Not displayed";
+      return answer || "Unanswered";
+    }
+
     const today = new Date();
     today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
     document.getElementById("walkDate").value = today.toISOString().slice(0, 10);
+    document.getElementById("walkObservationPoints").innerHTML = `<strong>Issues / Observations</strong>${observationPointMarkup("walk")}`;
 
     function imageToJpeg(file) {
       return new Promise((resolve, reject) => {
@@ -557,8 +622,6 @@
       preview.replaceChildren();
       const photos = photoUrls[key] || [];
       const inputs = [`${key}-camera`, `${key}-photo`].map((id) => document.getElementById(id)).filter(Boolean);
-      const count = document.querySelector(`[data-photo-count-for="${key}"]`);
-      if (count) count.textContent = `${photos.length} / ${maxPhotosPerBrand} images`;
       inputs.forEach((input) => { input.disabled = photos.length >= maxPhotosPerBrand; });
       photos.forEach((data, index) => {
         const container = document.createElement("div");
@@ -578,6 +641,7 @@
           });
           renderPhotos(key, previewId);
           updateProgress();
+          scheduleAutoSave();
         });
         container.append(image, remove);
         preview.append(container);
@@ -592,7 +656,7 @@
         const currentCount = (photoUrls[key] || []).length;
         if (currentCount + files.length > maxPhotosPerBrand) {
           input.value = "";
-          showError(`Each brand can have up to ${maxPhotosPerBrand} photos. Remove a photo or choose fewer images.`);
+          showError(`Each brand can have a maximum of ${maxPhotosPerBrand} photos. Remove a photo or choose fewer images.`);
           return;
         }
         try {
@@ -601,6 +665,7 @@
           input.value = "";
           renderPhotos(key, previewId);
           updateProgress();
+          scheduleAutoSave();
           showError("");
         } catch (error) {
           input.value = "";
@@ -611,30 +676,52 @@
     }
 
     function addNptBrand(brand = {}) {
-      const id = `npt-brand-${++nextNptBrandId}`;
+      const id = brand.id || `npt-${crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${++nextNptBrandId}`}`;
+      const savedName = String(brand.name || "").trim();
       const entry = document.createElement("div");
       entry.className = "npt-entry";
       entry.dataset.nptBrandId = id;
-      const nameLabel = document.createElement("label");
-      const nameLabelText = document.createElement("span");
-      nameLabelText.textContent = `NPT brand ${document.querySelectorAll(".npt-entry").length + 1} name`;
-      const nameInput = document.createElement("input");
-      nameInput.id = `${id}-name`;
-      nameInput.type = "text";
-      nameInput.maxLength = 100;
-      nameInput.placeholder = "Enter brand name";
-      nameInput.value = brand.name || "";
-      nameLabel.append(nameLabelText, nameInput);
+      const brandName = document.createElement("strong");
+      brandName.className = "npt-brand-name";
+      brandName.textContent = savedName;
+      const nameRow = document.createElement("div");
+      nameRow.className = "npt-name-row";
+      nameRow.append(brandName);
+      const remove = document.createElement("button");
+      remove.className = "danger npt-icon-button";
+      remove.type = "button";
+      remove.title = "Remove NPT brand";
+      remove.setAttribute("aria-label", "Remove NPT brand");
+      remove.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"></path></svg>';
+      remove.addEventListener("click", () => {
+        delete photoUrls[id];
+        entry.remove();
+        updateNptBrandLabels();
+        updateProgress();
+        scheduleAutoSave();
+      });
+      nameRow.append(remove);
 
       const photoLabel = document.createElement("div");
       photoLabel.className = "photo-field";
-      const photoLabelText = document.createElement("span");
-      photoLabelText.textContent = `Brand photos (up to ${maxPhotosPerBrand})`;
+      const availability = document.createElement("fieldset");
+      availability.className = "availability-field";
+      const availabilityLegend = document.createElement("legend");
+      availabilityLegend.textContent = `Does your store have ${savedName || "this brand"}?`;
+      const yesLabel = document.createElement("label");
+      yesLabel.innerHTML = `<input type="radio" name="${id}-availability" value="Yes"> Yes`;
+      const noLabel = document.createElement("label");
+      noLabel.innerHTML = `<input type="radio" name="${id}-availability" value="No"> No`;
+      availability.append(availabilityLegend, yesLabel, noLabel);
       const photoActions = document.createElement("div");
       photoActions.className = "photo-actions";
+      const photoLabelText = document.createElement("span");
+      photoLabelText.textContent = "Upload Image of Brand";
       const cameraLabel = document.createElement("label");
       cameraLabel.className = "photo-pick-button";
-      cameraLabel.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h-4l-1.5 2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L14 4Z"/><circle cx="12" cy="12.5" r="3.2"/></svg><span>Take photo</span>';
+      cameraLabel.title = "Take photo";
+      cameraLabel.setAttribute("aria-label", "Take photo");
+      cameraLabel.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h-4l-1.5 2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L14 4Z"/><circle cx="12" cy="12.5" r="3.2"/></svg>';
       const cameraInput = document.createElement("input");
       cameraInput.id = `${id}-camera`;
       cameraInput.type = "file";
@@ -644,7 +731,9 @@
       cameraLabel.append(cameraInput);
       const galleryLabel = document.createElement("label");
       galleryLabel.className = "photo-pick-button";
-      galleryLabel.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg><span>Choose from gallery</span>';
+      galleryLabel.title = "Choose from gallery";
+      galleryLabel.setAttribute("aria-label", "Choose from gallery");
+      galleryLabel.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>';
       const galleryInput = document.createElement("input");
       galleryInput.id = `${id}-photo`;
       galleryInput.type = "file";
@@ -653,56 +742,91 @@
       galleryInput.setAttribute("aria-label", `Choose photos from gallery for NPT brand ${document.querySelectorAll(".npt-entry").length + 1}`);
       galleryLabel.append(galleryInput);
       photoActions.append(cameraLabel, galleryLabel);
-      const photoCount = document.createElement("span");
-      photoCount.className = "photo-count hint";
-      photoCount.dataset.photoCountFor = id;
-      photoCount.setAttribute("aria-live", "polite");
-      photoCount.textContent = `0 / ${maxPhotosPerBrand} images`;
       const preview = document.createElement("div");
       preview.id = `${id}-preview`;
       preview.className = "photo-previews";
       preview.setAttribute("aria-live", "polite");
-      photoLabel.append(photoLabelText, photoActions, photoCount, preview);
+      photoLabel.append(photoLabelText, photoActions, preview);
 
-      const remove = document.createElement("button");
-      remove.className = "danger";
-      remove.type = "button";
-      remove.textContent = "Remove";
-      remove.setAttribute("aria-label", `Remove NPT brand ${document.querySelectorAll(".npt-entry").length + 1}`);
-      remove.addEventListener("click", () => {
-        delete photoUrls[id];
-        entry.remove();
-        updateNptBrandLabels();
-      });
-
-      entry.append(nameLabel, photoLabel, remove);
+      const observations = document.createElement("div");
+      observations.className = "observation-points";
+      observations.setAttribute("aria-label", "Issues and observations for this NPT brand");
+      observations.innerHTML = `<strong>Issues / Observations</strong>${observationPointMarkup(id, brand.observations || (brand.comment ? [brand.comment] : []))}`;
+      entry.append(nameRow, availability, photoLabel, observations);
       document.getElementById("nptList").append(entry);
+      setRadioAnswer(`${id}-availability`, brand.availability || "");
       photoUrls[id] = brand.photos || [];
       bindPhoto(`${id}-photo`, `${id}-preview`, id);
       renderPhotos(id, `${id}-preview`);
+      entry.querySelectorAll(`input[name="${id}-availability"]`).forEach((input) => {
+        input.addEventListener("change", () => {
+          updateProgress();
+          scheduleAutoSave();
+        });
+      });
+      observations.addEventListener("input", scheduleAutoSave);
       updateNptBrandLabels();
+      return entry;
+    }
+
+    function addNptBrandFromInput() {
+      const input = document.getElementById("nptBrandName");
+      const name = input.value.trim();
+      if (!name) {
+        showError("Enter a brand name before adding it.");
+        input.focus();
+        return;
+      }
+      const normalizedName = name.toLocaleLowerCase();
+      const duplicate = Array.from(document.querySelectorAll(".npt-brand-name"))
+        .some((existing) => existing.textContent.trim().toLocaleLowerCase() === normalizedName);
+      if (duplicate) {
+        showError(`${name} is already in the NPT brand list.`);
+        input.focus();
+        input.select();
+        return;
+      }
+      addNptBrand({ name });
+      input.value = "";
+      showError("");
+      updateProgress();
+      scheduleAutoSave();
+      input.focus();
     }
 
     function updateNptBrandLabels() {
       document.querySelectorAll(".npt-entry").forEach((entry, index) => {
         const number = index + 1;
-        entry.querySelector("label span").textContent = `NPT brand ${number} name`;
+        const brandName = entry.querySelector(".npt-brand-name").textContent.trim() || "unnamed brand";
+        entry.querySelector("button[aria-label^='Remove NPT brand']").setAttribute("aria-label", `Remove NPT brand ${number}: ${brandName}`);
         entry.querySelector('input[id$="-camera"]').setAttribute("aria-label", `Take a photo for NPT brand ${number}`);
         entry.querySelector('input[id$="-photo"]').setAttribute("aria-label", `Choose photos from gallery for NPT brand ${number}`);
-        entry.querySelector('button[aria-label^="Remove NPT brand"]').setAttribute("aria-label", `Remove NPT brand ${number}`);
       });
     }
 
     function getNptBrands() {
       return Array.from(document.querySelectorAll(".npt-entry")).map((entry) => ({
-        name: entry.querySelector('input[type="text"]').value.trim(),
+        id: entry.dataset.nptBrandId,
+        name: entry.querySelector(".npt-brand-name").textContent.trim(),
+        availability: getRadioAnswer(`${entry.dataset.nptBrandId}-availability`),
+        sdmAnswer: getRadioAnswer(`${entry.dataset.nptBrandId}-status`),
+        observations: getObservationPoints(entry.dataset.nptBrandId),
+        comment: formatObservationPoints(getObservationPoints(entry.dataset.nptBrandId)),
         photos: photoUrls[entry.dataset.nptBrandId] || []
-      })).filter((brand) => brand.name || brand.photos.length);
+      })).filter((brand) => brand.name || brand.photos.length || brand.availability || brand.observations.some(Boolean));
     }
 
     function getRecordNptBrands(record) {
       if (Array.isArray(record.nptBrands)) {
-        return record.nptBrands.map((brand) => ({ name: brand.name || "", photos: brand.photos || [] }));
+        return record.nptBrands.map((brand) => ({
+          id: brand.id || "",
+          name: brand.name || "",
+          availability: brand.availability || "",
+          sdmAnswer: brand.sdmAnswer || brand.status || "",
+          observations: Array.isArray(brand.observations) ? brand.observations : (brand.comment ? [brand.comment] : []),
+          comment: brand.comment || "",
+          photos: brand.photos || []
+        }));
       }
       if (record.nptName) {
         return [{
@@ -716,13 +840,14 @@
     allItems.forEach((item) => {
       const key = item.id;
       bindPhoto(key + "-photo", key + "-preview", key);
-      document.getElementById(key + "-status").addEventListener("change", updateProgress);
-      document.getElementById(item.availabilityKey).addEventListener("change", (event) => {
-        setItemAvailability(item, event.target.value);
-        updateProgress();
+      document.querySelectorAll(`input[name="${item.id}-status"], input[name="${item.availabilityKey}"]`).forEach((input) => {
+        input.addEventListener("change", () => {
+          if (input.name === item.availabilityKey) setItemAvailability(item, getRadioAnswer(item.availabilityKey));
+          updateProgress();
+          scheduleAutoSave();
+        });
       });
     });
-    document.getElementById("addNptBrand").addEventListener("click", () => addNptBrand());
     document.getElementById("nptToggle").addEventListener("click", (event) => {
       const toggle = event.currentTarget;
       const expanded = toggle.getAttribute("aria-expanded") === "true";
@@ -731,7 +856,51 @@
       toggle.setAttribute("aria-expanded", String(!expanded));
       toggle.setAttribute("aria-label", `${expanded ? "Expand" : "Collapse"} NPT brands`);
     });
-    addNptBrand();
+    document.getElementById("addNptBrand").addEventListener("click", addNptBrandFromInput);
+    document.getElementById("nptBrandName").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        addNptBrandFromInput();
+      }
+    });
+    document.getElementById("observationsToggle").addEventListener("click", (event) => {
+      const toggle = event.currentTarget;
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
+      document.getElementById("observationsContent").hidden = expanded;
+      toggle.textContent = expanded ? "+" : "−";
+      toggle.setAttribute("aria-expanded", String(!expanded));
+      toggle.setAttribute("aria-label", `${expanded ? "Expand" : "Collapse"} Issues / Observations`);
+    });
+    ["observationCamera", "observationGallery"].forEach((id) => {
+      document.getElementById(id).addEventListener("change", async (event) => {
+        const input = event.currentTarget;
+        const files = Array.from(input.files || []);
+        if (!files.length) return;
+        if (observationPhotos.length + files.length > maxPhotosPerBrand) {
+          showError(`Issues / Observations can have a maximum of ${maxPhotosPerBrand} photos.`);
+          input.value = "";
+          return;
+        }
+        try {
+          observationPhotos.push(...await Promise.all(files.map(imageToJpeg)));
+          input.value = "";
+          renderObservationPhotos();
+          scheduleAutoSave();
+          showError("");
+        } catch (error) {
+          input.value = "";
+          showError(`Could not add observation photo: ${error.message}`);
+        }
+      });
+    });
+    document.getElementById("walkObservationPoints").addEventListener("input", scheduleAutoSave);
+    document.getElementById("nptList").addEventListener("input", scheduleAutoSave);
+    document.getElementById("checklist").addEventListener("input", scheduleAutoSave);
+    document.getElementById("checklist").addEventListener("change", scheduleAutoSave);
+    document.querySelectorAll("#site, #auditor, #walkDate").forEach((input) => {
+      input.addEventListener("input", scheduleAutoSave);
+      input.addEventListener("change", scheduleAutoSave);
+    });
     updateProgress();
 
     const categoryObserver = new IntersectionObserver((entries) => {
@@ -742,22 +911,16 @@
     document.querySelectorAll(".category").forEach((section) => categoryObserver.observe(section));
 
     function updateProgress() {
-      const isAvailable = (item) => document.getElementById(item.availabilityKey).value === "Yes";
-      const availableItems = allItems.filter(isAvailable);
       const isComplete = (item) => {
-        const status = document.getElementById(item.id + "-status").value;
-        return Boolean(status && (status === "N/A" || (photoUrls[item.id] || []).length));
+        const availability = getRadioAnswer(item.availabilityKey);
+        return availability === "No" || availability === "Yes" && Boolean(getRadioAnswer(`${item.id}-status`));
       };
-      const answered = availableItems.filter(isComplete).length;
-      document.getElementById("progress").value = answered;
-      document.getElementById("progress").max = Math.max(1, availableItems.length);
-      document.getElementById("progressText").textContent = availableItems.length
-        ? `${answered} of ${availableItems.length} available brands complete`
-        : "Confirm brand availability to begin the audit.";
       const hasQuestionAnswer = allItems.some((item) =>
-        Boolean(document.getElementById(item.availabilityKey).value)
-        || Boolean(document.getElementById(item.id + "-status").value)
-      );
+        Boolean(getRadioAnswer(item.availabilityKey))
+        || Boolean(getRadioAnswer(`${item.id}-status`))
+      ) || getNptBrands().some((brand) => Boolean(brand.availability || brand.sdmAnswer))
+        || Boolean(document.getElementById("site").value || document.getElementById("auditor").value
+          || getObservationPoints("walk").some(Boolean) || observationPhotos.length);
       const saveDraftButton = document.getElementById("saveDraft");
       saveDraftButton.disabled = !hasQuestionAnswer;
       saveDraftButton.title = hasQuestionAnswer
@@ -765,7 +928,7 @@
         : "Select an answer for a checklist question to enable saving a draft.";
       [0, 1, 2, 3, 4, 5].forEach((groupIndex, displayIndex) => {
         const group = groups[groupIndex];
-        const groupItems = availableItems.filter((item) => item.group === group.title);
+        const groupItems = allItems.filter((item) => item.group === group.title);
         const groupAnswered = groupItems.filter(isComplete).length;
         const count = document.querySelector(`.section-nav button[data-category-index="${displayIndex}"] .nav-count`);
         if (count) count.textContent = `${groupAnswered}/${groupItems.length}`;
@@ -776,13 +939,31 @@
       const available = value === "Yes";
       document.getElementById(item.id + "-audit").hidden = !available;
       document.getElementById(item.id + "-details").hidden = !available;
-      if (!available) {
-        document.getElementById(item.id + "-status").value = "";
-        document.getElementById(item.id + "-note").value = "";
-        document.getElementById(item.id + "-photo").value = "";
-        photoUrls[item.id] = [];
-        renderPhotos(item.id, item.id + "-preview");
-      }
+    }
+
+    function renderObservationPhotos() {
+      const preview = document.getElementById("observationPhotoPreview");
+      preview.replaceChildren();
+      document.getElementById("observationCamera").disabled = observationPhotos.length >= maxPhotosPerBrand;
+      document.getElementById("observationGallery").disabled = observationPhotos.length >= maxPhotosPerBrand;
+      observationPhotos.forEach((photo, index) => {
+        const thumb = document.createElement("div");
+        thumb.className = "photo-thumb";
+        const image = document.createElement("img");
+        image.src = photo;
+        image.alt = `Observation photo ${index + 1}`;
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", `Remove observation photo ${index + 1}`);
+        remove.addEventListener("click", () => {
+          observationPhotos.splice(index, 1);
+          renderObservationPhotos();
+          scheduleAutoSave();
+        });
+        thumb.append(image, remove);
+        preview.append(thumb);
+      });
     }
 
     function showError(message) {
@@ -817,25 +998,17 @@
     }
 
     function goToNextIncompleteBrand() {
-      const availableItems = allItems.filter((item) =>
-        document.getElementById(item.availabilityKey).value === "Yes"
-      );
-      const incomplete = availableItems.find((item) => {
-        const status = document.getElementById(item.id + "-status").value;
-        return !status || status !== "N/A" && !(photoUrls[item.id] || []).length;
+      const incomplete = allItems.find((item) => {
+        const availability = getRadioAnswer(item.availabilityKey);
+        return !availability || availability === "Yes" && !getRadioAnswer(`${item.id}-status`);
       });
       if (incomplete) {
-        const status = document.getElementById(incomplete.id + "-status");
-        const control = status.value ? document.getElementById(incomplete.id + "-photo") : status;
+        const availability = getRadioAnswer(incomplete.availabilityKey);
+        const control = document.querySelector(availability
+          ? `input[name="${incomplete.id}-status"]`
+          : `input[name="${incomplete.availabilityKey}"]`);
         showError("");
         focusChecklistLocation(document.querySelector(`[data-item-id="${incomplete.id}"]`), control);
-        return;
-      }
-      if (!availableItems.length) {
-        showError("Mark a brand as available (Yes) to start its audit.");
-        const firstUnanswered = allItems.find((item) => !document.getElementById(item.availabilityKey).value) || allItems[0];
-        const availability = document.getElementById(firstUnanswered.availabilityKey);
-        focusChecklistLocation(availability.closest(".item"), availability);
         return;
       }
       showNotice("All available brands are complete.");
@@ -844,11 +1017,13 @@
     function getAnswers() {
       return allItems.map((item) => ({
         ...item,
-        availability: document.getElementById(item.availabilityKey).value,
-        status: document.getElementById(item.availabilityKey).value === "No"
+        availability: getRadioAnswer(item.availabilityKey),
+        status: getRadioAnswer(item.availabilityKey) === "No"
           ? "Unavailable"
-          : document.getElementById(item.id + "-status").value,
-        note: document.getElementById(item.id + "-note").value.trim(),
+          : getRadioAnswer(`${item.id}-status`),
+        sdmAnswer: getRadioAnswer(`${item.id}-status`),
+        observations: getObservationPoints(item.id),
+        note: formatObservationPoints(getObservationPoints(item.id)),
         photos: photoUrls[item.id] || []
       }));
     }
@@ -857,8 +1032,6 @@
       const site = document.getElementById("site").value;
       const auditor = document.getElementById("auditor").value.trim();
       const date = document.getElementById("walkDate").value;
-      const answers = getAnswers();
-      const availableAnswers = answers.filter((answer) => answer.availability === "Yes");
       if (!site || !auditor || !date) {
         showError("Please select a site and enter the walker's name and walk date.");
         const missingField = !site ? document.getElementById("site")
@@ -867,47 +1040,18 @@
         missingField.focus();
         return false;
       }
-      if (!availableAnswers.length) {
-        const availabilityInput = document.getElementById(allItems[0].availabilityKey);
-        showError("Mark Yes for at least one available brand to create this audit and PowerPoint report.");
-        focusChecklistLocation(availabilityInput.closest(".item"), availabilityInput);
-        return false;
-      }
-      const missingAudit = availableAnswers.find((answer) => !answer.status);
-      if (missingAudit) {
-        const statusInput = document.getElementById(missingAudit.id + "-status");
-        showError(`Please complete the VM audit for ${missingAudit.name}.`);
-        focusChecklistLocation(statusInput.closest(".item"), statusInput);
-        return false;
-      }
-      const missingPhoto = availableAnswers.find((answer) => answer.status !== "N/A" && !answer.photos.length);
-      if (missingPhoto) {
-        const photoInput = document.getElementById(missingPhoto.id + "-photo");
-        showError(`Please upload at least one photo for ${missingPhoto.name}, or mark it N/A if it does not apply.`);
-        focusChecklistLocation(photoInput.closest(".item"), photoInput);
-        return false;
-      }
-      const incompleteNptBrand = getNptBrands().find((brand) => !brand.name || !brand.photos.length);
-      if (incompleteNptBrand) {
-        showError("Enter a name and upload at least one photo for each NPT brand.");
-        const incompleteEntry = Array.from(document.querySelectorAll(".npt-entry")).find((entry) => {
-          const inputName = entry.querySelector('input[type="text"]').value.trim();
-          const photos = photoUrls[entry.dataset.nptBrandId] || [];
-          return Boolean(inputName || photos.length) && (!inputName || !photos.length);
-        });
-        const nameInput = incompleteEntry.querySelector('input[type="text"]');
-        const input = incompleteEntry.querySelector(nameInput.value.trim() ? 'input[type="file"]' : 'input[type="text"]');
-        if (document.getElementById("nptContent").hidden) {
-          document.getElementById("nptContent").hidden = false;
-          const toggle = document.getElementById("nptToggle");
-          toggle.textContent = "−";
-          toggle.setAttribute("aria-expanded", "true");
-          toggle.setAttribute("aria-label", "Collapse NPT brands");
-        }
-        focusChecklistLocation(incompleteEntry, input);
-        return false;
-      }
       return true;
+    }
+
+    function getRadioAnswer(name) {
+      return document.querySelector(`input[name="${name}"]:checked`)?.value || "";
+    }
+
+    function setRadioAnswer(name, value) {
+      const radios = Array.from(document.querySelectorAll(`input[name="${name}"]`));
+      radios.forEach((radio) => { radio.checked = false; });
+      const input = radios.find((candidate) => candidate.value === value);
+      if (input) input.checked = true;
     }
 
     function isDatabasePermissionDenied(error) {
@@ -1005,6 +1149,18 @@
       }
     }
 
+    async function clearFallbackRecords() {
+      if (window.caches) {
+        const cache = await caches.open(fallbackCacheName);
+        await cache.delete(fallbackCacheKey);
+      }
+      window.localStorage?.removeItem(fallbackStorageKey);
+      if (useMemoryFallback) {
+        memoryFallbackRecords = [];
+        useMemoryFallback = false;
+      }
+    }
+
     function openSavedDatabase() {
       return new Promise((resolve, reject) => {
         if (!window.indexedDB) {
@@ -1034,33 +1190,27 @@
               resolve(db);
               return;
             }
+            if (fallbackRecords.some((record) => !record.id)) {
+              db.close();
+              reject(new Error("The browser's backup checklist data contains an audit without an ID."));
+              return;
+            }
             const transaction = db.transaction("checklists", "readwrite");
             const store = transaction.objectStore("checklists");
-            fallbackRecords.forEach((record) => store.put(record));
-            transaction.oncomplete = () => {
-              if (useMemoryFallback) {
-                memoryFallbackRecords = [];
-                useMemoryFallback = false;
-              } else {
-                try {
-                  const storage = window.localStorage;
-                  if (storage) storage.removeItem(fallbackStorageKey);
-                } catch (error) {
-                  if (error?.name !== "SecurityError" && error?.name !== "NotAllowedError") {
-                    db.close();
-                    reject(error);
-                    return;
-                  }
-                }
-                if (window.caches) {
-                  caches.open(fallbackCacheName).then((cache) => cache.delete(fallbackCacheKey)).catch((error) => {
-                    if (error?.name !== "SecurityError" && error?.name !== "NotAllowedError") {
-                      showError(`Could not clear restored checklist backup: ${error.message}`);
-                    }
-                  });
-                }
+            fallbackRecords.forEach((record) => {
+              const getRequest = store.get(record.id);
+              getRequest.onsuccess = () => {
+                if (!getRequest.result) store.put(record);
+              };
+            });
+            transaction.oncomplete = async () => {
+              db.close();
+              try {
+                await clearFallbackRecords();
+                resolve(await openSavedDatabase());
+              } catch (error) {
+                reject(new Error(`Checklist backup was imported, but could not be safely cleared: ${error.message}`));
               }
-                resolve(db);
             };
             transaction.onerror = () => {
               db.close();
@@ -1088,12 +1238,7 @@
     async function saveRecord(record) {
       const db = await openSavedDatabase();
       if (!db) {
-        const records = await readFallbackRecords();
-        const existingIndex = records.findIndex((savedRecord) => savedRecord.id === record.id);
-        if (existingIndex === -1) records.push(record);
-        else records[existingIndex] = record;
-        await writeFallbackRecords(records);
-        return;
+        throw new Error("IndexedDB is unavailable. Your entered information remains on screen, but this audit was not saved. Allow site storage in Chrome and retry.");
       }
       return new Promise((resolve, reject) => {
         const transaction = db.transaction("checklists", "readwrite");
@@ -1106,14 +1251,21 @@
 
     async function readRecords() {
       const db = await openSavedDatabase();
-      if (!db) return (await readFallbackRecords()).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+      if (!db) return (await readFallbackRecords()).sort((a, b) => (b.updatedAt || b.savedAt || "").localeCompare(a.updatedAt || a.savedAt || ""));
       return new Promise((resolve, reject) => {
         const transaction = db.transaction("checklists", "readonly");
         const request = transaction.objectStore("checklists").getAll();
-        request.onsuccess = () => resolve(request.result.sort((a, b) => b.savedAt.localeCompare(a.savedAt)));
+        let records;
+        request.onsuccess = () => {
+          records = request.result.sort((a, b) => (b.updatedAt || b.savedAt || "").localeCompare(a.updatedAt || a.savedAt || ""));
+        };
         request.onerror = () => reject(request.error || new Error("Could not read saved checklists."));
-        transaction.oncomplete = () => db.close();
+        transaction.oncomplete = () => {
+          db.close();
+          resolve(records || []);
+        };
         transaction.onerror = () => { db.close(); reject(transaction.error || new Error("Could not read saved checklists.")); };
+        transaction.onabort = () => { db.close(); reject(transaction.error || new Error("Reading saved checklists was cancelled.")); };
       });
     }
 
@@ -1123,10 +1275,12 @@
       return new Promise((resolve, reject) => {
         const transaction = db.transaction("checklists", "readonly");
         const request = transaction.objectStore("checklists").get(id);
-        request.onsuccess = () => resolve(request.result || null);
+        let record = null;
+        request.onsuccess = () => { record = request.result || null; };
         request.onerror = () => reject(request.error || new Error("Could not read checklist version."));
-        transaction.oncomplete = () => db.close();
+        transaction.oncomplete = () => { db.close(); resolve(record); };
         transaction.onerror = () => { db.close(); reject(transaction.error || new Error("Could not read checklist version.")); };
+        transaction.onabort = () => { db.close(); reject(transaction.error || new Error("Reading the checklist version was cancelled.")); };
       });
     }
 
@@ -1141,6 +1295,7 @@
         transaction.objectStore("checklists").delete(id);
         transaction.oncomplete = () => { db.close(); resolve(); };
         transaction.onerror = () => { db.close(); reject(transaction.error || new Error("Could not delete the saved checklist.")); };
+        transaction.onabort = () => { db.close(); reject(transaction.error || new Error("Deleting the saved checklist was cancelled.")); };
       });
     }
 
@@ -1149,12 +1304,88 @@
         id,
         kind,
         savedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         site: document.getElementById("site").value,
         auditor: document.getElementById("auditor").value.trim(),
         date: document.getElementById("walkDate").value,
         answers: getAnswers(),
-        nptBrands: getNptBrands()
+        nptBrands: getNptBrands(),
+        observationPoints: getObservationPoints("walk"),
+        observationText: formatObservationPoints(getObservationPoints("walk")),
+        observationPhotos
       };
+    }
+
+    function createAuditId() {
+      return `audit-${crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
+    }
+
+    function hasRecoverableFormData() {
+      return Boolean(document.getElementById("site").value
+        || document.getElementById("auditor").value.trim()
+        || getObservationPoints("walk").some(Boolean)
+        || observationPhotos.length
+        || getNptBrands().length
+        || getAnswers().some((answer) => answer.availability || answer.sdmAnswer || answer.note || answer.photos.length));
+    }
+
+    function queueAutoSave() {
+      if (!hasRecoverableFormData() && !editingRecordId) return autoSaveQueue;
+      const id = editingRecordId || createAuditId();
+      editingRecordId = id;
+      editingRecordKind = editingRecordKind || "inProgress";
+      const record = captureCurrent(id, editingRecordKind);
+      const revision = autoSaveRevision;
+      const saveTask = autoSaveQueue.catch(() => {}).then(async () => {
+        const previous = await readRecord(id);
+        record.kind = previous?.kind || editingRecordKind || "inProgress";
+        record.createdAt = previous?.createdAt || record.savedAt;
+        record.history = previous?.history || [];
+        await saveRecord(record);
+        if (editingRecordId === id) editingRecordKind = record.kind;
+        if (revision === autoSaveRevision && !autoSaveTimer) {
+          document.getElementById("saveState").textContent = "Saved";
+        }
+        renderDashboard().catch((error) => {
+          showError(`Audit saved, but the screen could not be refreshed: ${error.message}`);
+        });
+      });
+      autoSaveQueue = saveTask;
+      saveTask.catch((error) => {
+        document.getElementById("saveState").textContent = "Save failed";
+        showError(`Automatic save failed. Your entered information remains on screen; retry saving after checking device storage. ${error.message}`);
+      });
+      return saveTask;
+    }
+
+    function scheduleAutoSave() {
+      if (!hasRecoverableFormData() && !editingRecordId) return;
+      editingRecordId = editingRecordId || createAuditId();
+      editingRecordKind = editingRecordKind || "inProgress";
+      autoSaveRevision += 1;
+      document.getElementById("saveState").textContent = "Saving…";
+      if (autoSaveTimer) clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        autoSaveTimer = null;
+        queueAutoSave().catch(() => {});
+      }, 300);
+    }
+
+    async function flushPendingAutoSave() {
+      const retryFailedSave = document.getElementById("saveState").textContent === "Save failed"
+        && (hasRecoverableFormData() || editingRecordId);
+      if (autoSaveTimer || retryFailedSave) {
+        if (autoSaveTimer) clearTimeout(autoSaveTimer);
+        autoSaveTimer = null;
+        await queueAutoSave();
+        return;
+      }
+      await autoSaveQueue;
+    }
+
+    function hasUnsavedChanges() {
+      const state = document.getElementById("saveState").textContent;
+      return Boolean(autoSaveTimer || state === "Saving…" || state === "Save failed" && (hasRecoverableFormData() || editingRecordId));
     }
 
     function snapshotRecord(record) {
@@ -1165,35 +1396,59 @@
         auditor: record.auditor,
         date: record.date,
         answers: record.answers,
-        nptBrands: getRecordNptBrands(record)
+        nptBrands: getRecordNptBrands(record),
+        observationPoints: record.observationPoints || [],
+        observationText: record.observationText || "",
+        observationPhotos: record.observationPhotos || []
       };
     }
 
-    function applyRecord(record) {
-      editingRecordId = record.id;
-      editingRecordKind = record.kind;
-      document.getElementById("site").value = record.site || "";
-      document.getElementById("auditor").value = record.auditor || "";
-      document.getElementById("walkDate").value = record.date || "";
+    async function applyRecord(record) {
+      await flushPendingAutoSave();
+      const latestRecord = await readRecord(record.id) || record;
+      editingRecordId = latestRecord.id;
+      editingRecordKind = latestRecord.kind;
+      document.getElementById("site").value = latestRecord.site || "";
+      document.getElementById("auditor").value = latestRecord.auditor || "";
+      document.getElementById("walkDate").value = latestRecord.date || "";
       photoUrls = {};
-      (record.answers || []).forEach((answer) => {
+      allItems.forEach((item) => {
+        setRadioAnswer(item.availabilityKey, "");
+        setRadioAnswer(`${item.id}-status`, "");
+        setObservationPoints(item.id, []);
+        photoUrls[item.id] = [];
+        setItemAvailability(item, "");
+      });
+      (latestRecord.answers || []).forEach((answer) => {
         const item = allItems.find((candidate) => candidate.id === answer.id);
         if (!item) return;
         const availability = answer.availability
           || (answer.status === "Unavailable" ? "No" : answer.status ? "Yes" : "");
-        document.getElementById(item.availabilityKey).value = availability;
+        setRadioAnswer(item.availabilityKey, availability);
         setItemAvailability(item, availability);
-        document.getElementById(answer.id + "-status").value = answer.status === "Unavailable" ? "" : (answer.status || "");
-        document.getElementById(answer.id + "-note").value = answer.note || "";
+        setRadioAnswer(`${answer.id}-status`, answer.sdmAnswer || (answer.status === "Unavailable" ? "" : (answer.status || "")));
+        setObservationPoints(answer.id, answer.observations, answer.note || "");
         photoUrls[answer.id] = answer.photos || (answer.photo ? [answer.photo] : []);
         renderPhotos(answer.id, answer.id + "-preview");
       });
+      allItems.forEach((item) => {
+        if ((latestRecord.answers || []).some((answer) => answer.id === item.id)) return;
+        setRadioAnswer(item.availabilityKey, "");
+        setRadioAnswer(`${item.id}-status`, "");
+        setObservationPoints(item.id, []);
+        photoUrls[item.id] = [];
+        setItemAvailability(item, "");
+        renderPhotos(item.id, `${item.id}-preview`);
+      });
       document.getElementById("nptList").replaceChildren();
+      document.getElementById("nptBrandName").value = "";
       nextNptBrandId = 0;
-      const nptBrands = getRecordNptBrands(record);
+      const nptBrands = getRecordNptBrands(latestRecord);
       if (nptBrands.length) nptBrands.forEach((brand) => addNptBrand(brand));
-      else addNptBrand();
-      document.getElementById("submitChecklist").textContent = record.kind === "submitted"
+      setObservationPoints("walk", latestRecord.observationPoints, latestRecord.observationText || "");
+      observationPhotos = latestRecord.observationPhotos || [];
+      renderObservationPhotos();
+      document.getElementById("submitChecklist").textContent = latestRecord.kind === "submitted"
         ? "✓ Update"
         : "✓ Submit";
       updateProgress();
@@ -1221,9 +1476,13 @@
         edit.type = "button";
         edit.className = "secondary";
         edit.textContent = "Edit this version";
-        edit.addEventListener("click", () => {
-          applyRecord({ ...version, id: record.id, kind: "submitted", history: record.history });
-          showView("checklist");
+        edit.addEventListener("click", async () => {
+          try {
+            await applyRecord({ ...version, id: record.id, kind: "submitted", history: record.history });
+            showView("checklist");
+          } catch (error) {
+            showError(`Could not open audit ${record.id}: ${error.message}`);
+          }
         });
         row.append(summary, edit);
         container.append(row);
@@ -1231,26 +1490,39 @@
     }
 
     async function renderDashboard() {
-      const records = await readRecords();
+      const revision = ++dashboardRenderRevision;
+      const loading = document.getElementById("dashboardLoading");
+      const recent = document.getElementById("recentActivity");
+      loading.hidden = false;
+      loading.classList.remove("load-failed");
+      loading.textContent = "Loading saved audits…";
+      recent.setAttribute("aria-busy", "true");
+      let records;
+      try {
+        records = await readRecords();
+      } catch (error) {
+        if (revision === dashboardRenderRevision) {
+          loading.textContent = `Could not load saved audits: ${error.message}`;
+          loading.classList.add("load-failed");
+          recent.setAttribute("aria-busy", "false");
+        }
+        throw error;
+      }
+      if (revision !== dashboardRenderRevision) return;
       const submitted = records.filter((record) => record.kind === "submitted");
       const drafts = records.filter((record) => record.kind === "draft");
-      const completion = submitted.length
-        ? Math.round(submitted.reduce((sum, record) => {
-          const answers = (record.answers || []).filter((answer) => answer.availability === "Yes");
-          const completed = answers.filter((answer) => answer.status || answer.availability === "No").length;
-          return sum + (answers.length ? completed / answers.length : 0);
-        }, 0) / submitted.length * 100)
-        : 0;
+      const inProgress = records.filter((record) => record.kind !== "submitted" && record.kind !== "draft");
       document.getElementById("metricTotal").textContent = String(records.length);
       document.getElementById("metricSubmitted").textContent = String(submitted.length);
+      document.getElementById("metricInProgress").textContent = String(inProgress.length);
       document.getElementById("metricDrafts").textContent = String(drafts.length);
-      document.getElementById("metricCompletion").textContent = `${completion}%`;
       const selectedSite = document.getElementById("site").value;
       document.getElementById("dashboardStore").textContent = selectedSite
         ? `Current checklist: ${selectedSite} · ${document.getElementById("walkDate").value}`
         : "Select a store in the checklist to start an audit.";
-      const recent = document.getElementById("recentActivity");
       recent.replaceChildren();
+      recent.setAttribute("aria-busy", "false");
+      loading.hidden = true;
       if (!records.length) {
         const empty = document.createElement("p");
         empty.className = "empty-state";
@@ -1258,39 +1530,372 @@
         recent.append(empty);
         return;
       }
-      records.slice(0, 5).forEach((record) => {
+      records.forEach((record) => {
         const line = document.createElement("div");
         line.className = "saved-entry";
         const text = document.createElement("p");
-        text.textContent = `${record.kind === "draft" ? "Draft" : "Submitted"} · ${record.site || "No site"} · ${record.date || "No date"} · ${record.auditor || "No name"}`;
-        const view = document.createElement("button");
-        view.type = "button";
-        view.className = "secondary";
-        view.textContent = record.kind === "draft" ? "✎ Edit" : "View";
-        view.addEventListener("click", () => {
-          if (record.kind === "draft") {
-            applyRecord(record);
-            showView("checklist");
-          } else {
-            showView("reports");
-          }
-        });
-        line.append(text, view);
+        text.textContent = formatAuditDisplayName(record);
+        const controls = document.createElement("div");
+        controls.className = "button-row";
+        addRecordActionButtons(record, controls);
+        line.append(text, controls);
         recent.append(line);
       });
+    }
+
+    function recordStatusLabel(kind) {
+      if (kind === "submitted") return "Submitted";
+      if (kind === "draft") return "Draft";
+      return "In Progress";
+    }
+
+    function formatAuditDisplayName(record) {
+      const site = record.site || "Store not selected";
+      const date = record.date || "Date not set";
+      const status = recordStatusLabel(record.kind);
+      return `${site} · ${date} · ${status}`;
+    }
+
+    function actionButton(label, symbol, action, className = "secondary") {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = className;
+      button.textContent = symbol;
+      button.setAttribute("aria-label", label);
+      button.title = label;
+      button.addEventListener("click", action);
+      return button;
+    }
+
+    function addRecordActionButtons(record, container) {
+      container.append(actionButton(`View audit ${record.id}`, "◉", () => showAuditSummary(record)));
+      container.append(actionButton(`Edit audit ${record.id}`, "✎", async () => {
+        try {
+          await applyRecord(record);
+          showView("checklist");
+        } catch (error) {
+          showError(`Could not open audit ${record.id}: ${error.message}`);
+        }
+      }));
+      if (record.kind === "submitted" || record.kind === "draft") {
+        container.append(actionButton(`Download PowerPoint for audit ${record.id}`, "⬇", (event) => downloadReport(record, event.currentTarget)));
+      }
+      container.append(actionButton(`Delete audit ${record.id}`, "×", () => deleteAudit(record), "danger"));
+    }
+
+    function buildQuestionRow(question, onEdit) {
+      const row = document.createElement("div");
+      row.className = "saved-entry";
+      row.style.padding = "8px 0";
+      const label = document.createElement("strong");
+      label.textContent = `${question.group || "Brand"}: ${displayBrandName(question.name)}`;
+      const value = document.createElement("p");
+      const availability = question.availability || (question.status === "Unavailable" ? "No" : "");
+      value.textContent = `Does your store have ${displayBrandName(question.name)}? ${availability || "Unanswered"}`;
+      if (availability === "Yes") {
+        value.textContent += ` · Is the brand displayed as per SDM? ${sdmAnswerLabel(question.sdmAnswer || question.status)}`;
+      }
+      const noteText = formatObservationPoints(question.observations, question.note);
+      if (noteText) {
+        value.textContent += `\nIssues / Observations:\n${noteText}`;
+      }
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "secondary";
+      editButton.textContent = "✎ Edit";
+      editButton.addEventListener("click", onEdit);
+      row.append(label, value, editButton);
+      return row;
+    }
+
+    function buildQuestionEditor(question, onSave, onCancel) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "audit-summary";
+      wrapper.style.display = "grid";
+      wrapper.style.gap = "12px";
+
+      const render = () => {
+        wrapper.replaceChildren();
+        const title = document.createElement("strong");
+        title.textContent = `${question.group || "Brand"}: ${displayBrandName(question.name)}`;
+        wrapper.append(title);
+
+        const select = document.createElement("select");
+        select.innerHTML = '<option value="">Unanswered</option><option value="Yes">Yes</option><option value="No">No</option>';
+        select.value = question.availability || "";
+        wrapper.append(select);
+
+        const sdmWrap = document.createElement("div");
+        const sdmLabel = document.createElement("label");
+        sdmLabel.textContent = "Is the brand displayed as per SDM?";
+        const sdmSelect = document.createElement("select");
+        sdmSelect.innerHTML = '<option value="">Select</option><option value="Yes">Yes</option><option value="No">No</option>';
+        sdmSelect.value = question.sdmAnswer || question.status || "";
+        sdmWrap.append(sdmLabel, sdmSelect);
+        wrapper.append(sdmWrap);
+
+        const notes = document.createElement("textarea");
+        notes.value = formatObservationPoints(question.observations, question.note || "");
+        notes.placeholder = "Issues / Observations";
+        wrapper.append(notes);
+
+        const photoRow = document.createElement("div");
+        photoRow.className = "photo-actions";
+        const cameraLabel = document.createElement("label");
+        cameraLabel.className = "photo-pick-button";
+        cameraLabel.title = "Take photo";
+        cameraLabel.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h-4l-1.5 2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L14 4Z"/><circle cx="12" cy="12.5" r="3.2"/></svg>';
+        const cameraInput = document.createElement("input");
+        cameraInput.type = "file";
+        cameraInput.accept = "image/*";
+        cameraInput.setAttribute("capture", "environment");
+        cameraInput.addEventListener("change", async () => {
+          const files = Array.from(cameraInput.files || []);
+          if (!files.length) return;
+          const added = await Promise.all(files.map(imageToJpeg));
+          question.photos = [...(question.photos || []), ...added];
+          render();
+        });
+        cameraLabel.append(cameraInput);
+        const galleryLabel = document.createElement("label");
+        galleryLabel.className = "photo-pick-button";
+        galleryLabel.title = "Choose from gallery";
+        galleryLabel.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>';
+        const galleryInput = document.createElement("input");
+        galleryInput.type = "file";
+        galleryInput.accept = "image/*";
+        galleryInput.multiple = true;
+        galleryInput.addEventListener("change", async () => {
+          const files = Array.from(galleryInput.files || []);
+          if (!files.length) return;
+          const added = await Promise.all(files.map(imageToJpeg));
+          question.photos = [...(question.photos || []), ...added];
+          render();
+        });
+        galleryLabel.append(galleryInput);
+        photoRow.append(cameraLabel, galleryLabel);
+        wrapper.append(photoRow);
+
+        const photoPreview = document.createElement("div");
+        photoPreview.className = "photo-previews";
+        (question.photos || []).forEach((photo, index) => {
+          const thumb = document.createElement("div");
+          thumb.className = "photo-thumb";
+          const image = document.createElement("img");
+          image.src = photo;
+          image.alt = `${displayBrandName(question.name)} photo ${index + 1}`;
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.textContent = "×";
+          remove.addEventListener("click", () => {
+            question.photos = (question.photos || []).filter((_, photoIndex) => photoIndex !== index);
+            render();
+          });
+          thumb.append(image, remove);
+          photoPreview.append(thumb);
+        });
+        wrapper.append(photoPreview);
+
+        const actions = document.createElement("div");
+        actions.className = "button-row";
+        const save = document.createElement("button");
+        save.type = "button";
+        save.className = "primary-blue";
+        save.textContent = "Save";
+        save.addEventListener("click", () => {
+          question.availability = select.value;
+          question.sdmAnswer = sdmSelect.value;
+          question.note = notes.value.trim();
+          question.observations = notes.value.trim() ? [notes.value.trim()] : [];
+          onSave(question);
+        });
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "secondary";
+        cancel.textContent = "Cancel";
+        cancel.addEventListener("click", onCancel);
+        actions.append(save, cancel);
+        wrapper.append(actions);
+      };
+      render();
+      return wrapper;
+    }
+
+    function showAuditSummary(record) {
+      const container = document.getElementById("viewSummary");
+      container.replaceChildren();
+      const metadata = document.createElement("p");
+      metadata.textContent = `${record.id} · ${recordStatusLabel(record.kind)}\nStore: ${record.site || "Not selected"}\nWalk date: ${record.date || "Not set"}\nAuditor: ${record.auditor || "Not entered"}`;
+      container.append(metadata);
+      const renderQuestionList = (items) => {
+        items.forEach((answer) => {
+          const section = document.createElement("section");
+          const heading = document.createElement("strong");
+          heading.textContent = `${answer.group}: ${displayBrandName(answer.name)}`;
+          const result = document.createElement("p");
+          const availability = answer.availability || (answer.status === "Unavailable" ? "No" : "");
+          result.textContent = `Does your store have ${displayBrandName(answer.name)}? ${availability || "Unanswered"}`
+            + (availability === "Yes" ? ` · Is the brand displayed as per SDM? ${sdmAnswerLabel(answer.sdmAnswer || answer.status)}`
+              + (formatObservationPoints(answer.observations, answer.note) ? `\nIssues / Observations:\n${formatObservationPoints(answer.observations, answer.note)}` : "") : "");
+          const edit = document.createElement("button");
+          edit.type = "button";
+          edit.className = "secondary";
+          edit.textContent = "✎ Edit";
+          edit.addEventListener("click", () => {
+            const editor = buildQuestionEditor(JSON.parse(JSON.stringify(answer)), async (updatedQuestion) => {
+              const current = await readRecord(record.id);
+              if (!current) return;
+              current.answers = (current.answers || []).map((item) => item.id === updatedQuestion.id ? {
+                ...item,
+                ...updatedQuestion,
+                availability: updatedQuestion.availability || "",
+                sdmAnswer: updatedQuestion.sdmAnswer || "",
+                status: updatedQuestion.availability === "No" ? "Unavailable" : (updatedQuestion.sdmAnswer || ""),
+                note: updatedQuestion.note || "",
+                observations: updatedQuestion.observations || [],
+                photos: updatedQuestion.photos || []
+              } : item);
+              current.updatedAt = new Date().toISOString();
+              await saveRecord(current);
+              document.getElementById("viewDialog").close();
+              showNotice("Question updated successfully.");
+              await renderDashboard();
+              showAuditSummary(current);
+            }, () => showAuditSummary(record));
+            section.replaceChildren();
+            section.append(editor);
+          });
+          section.append(heading, result, edit);
+          container.append(section);
+        });
+      };
+      renderQuestionList(record.answers || []);
+      if (record.observationText || (record.observationPoints || []).some(Boolean) || (record.observationPhotos || []).length) {
+        const observations = document.createElement("section");
+        const heading = document.createElement("strong");
+        heading.textContent = "Issues / Observations";
+        const text = document.createElement("p");
+        text.textContent = formatObservationPoints(record.observationPoints, record.observationText) || "No observation text.";
+        observations.append(heading, text);
+        (record.observationPhotos || []).forEach((photo, index) => {
+          const image = document.createElement("img");
+          image.src = photo;
+          image.alt = `Observation evidence ${index + 1}`;
+          observations.append(image);
+        });
+        container.append(observations);
+      }
+      getRecordNptBrands(record).forEach((brand) => {
+        const section = document.createElement("section");
+        const heading = document.createElement("strong");
+        heading.textContent = `NPT Brand: ${displayBrandName(brand.name)}`;
+        const result = document.createElement("p");
+        result.textContent = `Does your store have ${displayBrandName(brand.name)}? ${brand.availability || "Unanswered"}`
+          + (formatObservationPoints(brand.observations, brand.comment)
+            ? `\nIssues / Observations:\n${formatObservationPoints(brand.observations, brand.comment)}` : "");
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "secondary";
+        edit.textContent = "✎ Edit";
+        edit.addEventListener("click", () => {
+          const editor = buildQuestionEditor(JSON.parse(JSON.stringify({
+            group: "NPT Brand",
+            name: brand.name,
+            availability: brand.availability,
+            sdmAnswer: brand.sdmAnswer,
+            status: brand.sdmAnswer,
+            note: brand.comment || "",
+            observations: brand.observations || [],
+            photos: brand.photos || []
+          })), async (updatedQuestion) => {
+            const current = await readRecord(record.id);
+            if (!current) return;
+            current.nptBrands = (current.nptBrands || []).map((item) => item.name === brand.name ? {
+              ...item,
+              availability: updatedQuestion.availability || "",
+              sdmAnswer: updatedQuestion.sdmAnswer || "",
+              comment: updatedQuestion.note || "",
+              observations: updatedQuestion.observations || [],
+              photos: updatedQuestion.photos || []
+            } : item);
+            current.updatedAt = new Date().toISOString();
+            await saveRecord(current);
+            document.getElementById("viewDialog").close();
+            showNotice("Question updated successfully.");
+            await renderDashboard();
+            showAuditSummary(current);
+          }, () => showAuditSummary(record));
+          section.replaceChildren();
+          section.append(editor);
+        });
+        section.append(heading, result, edit);
+        if (brand.availability === "Yes") (brand.photos || []).forEach((photo, index) => {
+          const image = document.createElement("img");
+          image.src = photo;
+          image.alt = `${displayBrandName(brand.name)} evidence ${index + 1}`;
+          section.append(image);
+        });
+        container.append(section);
+      });
+      document.getElementById("viewDialog").showModal();
+    }
+
+    async function deleteAudit(record) {
+      if (!window.confirm(`Delete audit ${record.id} and its saved evidence from this device? This cannot be undone.`)) return;
+      try {
+        await deleteRecord(record.id);
+        await renderDashboard();
+      } catch (error) {
+        showError(`Could not delete audit ${record.id}: ${error.message}`);
+      }
     }
 
     function showView(view) {
       document.querySelectorAll("[data-screen]").forEach((element) => {
         element.hidden = element.dataset.screen !== view;
       });
-      document.querySelectorAll("[data-app-view]").forEach((button) => {
-        if (button.dataset.appView === view) button.setAttribute("aria-current", "page");
-        else button.removeAttribute("aria-current");
-      });
       if (view === "dashboard") renderDashboard().catch((error) => showError(`Could not load dashboard: ${error.message}`));
-      if (view === "reports") renderSavedRecords();
       window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function addStoreOption(name) {
+      const cleanName = name.trim();
+      if (!cleanName) return false;
+      const select = document.getElementById("site");
+      if (Array.from(select.options).some((option) => option.value.toLocaleLowerCase() === cleanName.toLocaleLowerCase())) {
+        select.value = Array.from(select.options).find((option) => option.value.toLocaleLowerCase() === cleanName.toLocaleLowerCase()).value;
+        return true;
+      }
+      const option = document.createElement("option");
+      option.value = cleanName;
+      option.textContent = cleanName;
+      select.append(option);
+      select.value = cleanName;
+      try {
+        const existing = JSON.parse(localStorage.getItem("storepulse-custom-stores") || "[]");
+        const stores = Array.isArray(existing) ? existing : [];
+        if (!stores.includes(cleanName)) stores.push(cleanName);
+        localStorage.setItem("storepulse-custom-stores", JSON.stringify(stores));
+      } catch (error) {
+        showError(`Store was added for this session but could not be saved for future use: ${error.message}`);
+      }
+      scheduleAutoSave();
+      return true;
+    }
+
+    function restoreCustomStoreOptions() {
+      try {
+        const stores = JSON.parse(localStorage.getItem("storepulse-custom-stores") || "[]");
+        if (Array.isArray(stores)) stores.filter((store) => typeof store === "string").forEach((store) => {
+          if (Array.from(document.getElementById("site").options).some((option) => option.value === store)) return;
+          const option = document.createElement("option");
+          option.value = store;
+          option.textContent = store;
+          document.getElementById("site").append(option);
+        });
+      } catch (error) {
+        if (error?.name !== "SecurityError") showError(`Could not restore custom store names: ${error.message}`);
+      }
     }
 
     async function renderSavedRecords() {
@@ -1322,7 +1927,7 @@
           entry.className = "saved-entry";
           const description = document.createElement("p");
           const title = document.createElement("strong");
-          title.textContent = `${record.kind === "draft" ? "Draft" : "Submitted"} — ${record.site || "Site not selected"}`;
+          title.textContent = `${record.id} · Submitted — ${record.site || "Store not selected"}`;
           const details = document.createElement("span");
           details.className = "hint";
           const answers = (record.answers || []).filter((answer) => answer.availability === "Yes");
@@ -1341,10 +1946,15 @@
           load.type = "button";
           load.className = "secondary";
           load.textContent = "✎ Edit";
+          load.setAttribute("aria-label", `Edit audit ${record.id}`);
           load.title = record.kind === "submitted" ? "Edit this submitted report, then submit to update it." : "Continue editing this saved draft.";
-          load.addEventListener("click", () => {
-            applyRecord(record);
-            showView("checklist");
+          load.addEventListener("click", async () => {
+            try {
+              await applyRecord(record);
+              showView("checklist");
+            } catch (error) {
+              showError(`Could not open audit ${record.id}: ${error.message}`);
+            }
           });
           const download = document.createElement("button");
           download.type = "button";
@@ -1352,7 +1962,14 @@
           download.textContent = "📊 PPT";
           download.disabled = !isReportExportReady(record);
           download.title = download.disabled ? "Complete the checklist and add required photos before exporting." : "Download this saved checklist as a PowerPoint.";
+          download.setAttribute("aria-label", `Download PowerPoint for audit ${record.id}`);
           download.addEventListener("click", () => downloadReport(record, download, false));
+          const view = document.createElement("button");
+          view.type = "button";
+          view.className = "secondary";
+          view.textContent = "◉ View";
+          view.setAttribute("aria-label", `View audit ${record.id}`);
+          view.addEventListener("click", () => showAuditSummary(record));
           const historyButton = document.createElement("button");
           historyButton.type = "button";
           historyButton.className = "secondary";
@@ -1368,17 +1985,9 @@
           remove.type = "button";
           remove.className = "danger";
           remove.textContent = "Delete";
-          remove.addEventListener("click", async () => {
-            if (!window.confirm("Delete this saved checklist from this device?")) return;
-            try {
-              await deleteRecord(record.id);
-              await renderSavedRecords();
-              await renderDashboard();
-            } catch (error) {
-              showError(`Could not delete saved checklist: ${error.message}`);
-            }
-          });
-          controls.append(load, download, historyButton, remove);
+          remove.setAttribute("aria-label", `Delete audit ${record.id}`);
+          remove.addEventListener("click", () => deleteAudit(record));
+          controls.append(view, load, download, historyButton, remove);
           entry.append(description, controls, historyList);
           container.append(entry);
         });
@@ -1391,33 +2000,37 @@
     function isReportExportReady(record) {
       const answers = (record.answers || []).filter((answer) => answer.availability === "Yes");
       const nptBrands = getRecordNptBrands(record);
-      return (answers.length > 0 || nptBrands.length > 0)
-        && answers.every((answer) =>
-          Boolean(answer.status)
-          && (answer.status === "N/A" || (answer.photos || (answer.photo ? [answer.photo] : [])).length > 0)
-        )
-        && nptBrands.every((brand) => Boolean(brand.name && brand.photos.length));
+      const allAnswers = record.answers || [];
+      return allAnswers.every((answer) => Boolean(answer.availability || answer.status === "Unavailable"))
+        && answers.every((answer) => Boolean(answer.sdmAnswer || answer.status && answer.status !== "Unavailable"))
+        && nptBrands.every((brand) =>
+          !brand.name || Boolean(brand.availability && (brand.availability !== "Yes" || brand.sdmAnswer))
+        );
     }
 
     function resetChecklistForm() {
+      if (autoSaveTimer) clearTimeout(autoSaveTimer);
       editingRecordId = null;
       editingRecordKind = null;
       document.getElementById("site").value = "";
       document.getElementById("auditor").value = "";
       document.getElementById("walkDate").value = today.toISOString().slice(0, 10);
       document.getElementById("nptList").replaceChildren();
+      document.getElementById("nptBrandName").value = "";
       nextNptBrandId = 0;
-      addNptBrand();
       photoUrls = {};
       allItems.forEach((item) => {
-        document.getElementById(item.availabilityKey).value = "";
-        document.getElementById(item.id + "-status").value = "";
-        document.getElementById(item.id + "-note").value = "";
+        document.querySelectorAll(`input[name="${item.availabilityKey}"], input[name="${item.id}-status"]`).forEach((input) => { input.checked = false; });
+        setObservationPoints(item.id, []);
         document.getElementById(item.id + "-photo").value = "";
         photoUrls[item.id] = [];
         setItemAvailability(item, "");
         renderPhotos(item.id, item.id + "-preview");
       });
+      observationPhotos = [];
+      setObservationPoints("walk", []);
+      renderObservationPhotos();
+      document.getElementById("saveState").textContent = "";
       document.getElementById("submitChecklist").textContent = "✓ Submit";
       updateProgress();
       showError("");
@@ -1425,29 +2038,28 @@
     }
 
     async function saveDraft() {
-      const hasQuestionAnswer = allItems.some((item) =>
-        Boolean(document.getElementById(item.availabilityKey).value)
-        || Boolean(document.getElementById(item.id + "-status").value)
-      );
-      if (!hasQuestionAnswer) {
-        showError("");
-        const firstItem = allItems.find((item) => !document.getElementById(item.availabilityKey).value) || allItems[0];
-        const availability = document.getElementById(firstItem.availabilityKey);
-        focusChecklistLocation(availability.closest(".item"), availability);
+      if (!hasRecoverableFormData()) {
+        showError("Enter audit details or answers before saving a draft.");
         return;
       }
       const button = document.getElementById("saveDraft");
       button.disabled = true;
       try {
-        const id = editingRecordKind === "draft" && editingRecordId
-          ? editingRecordId
-          : `draft-${Date.now()}`;
-        await saveRecord(captureCurrent(id, "draft"));
+        if (autoSaveTimer) {
+          clearTimeout(autoSaveTimer);
+          autoSaveTimer = null;
+        }
+        await autoSaveQueue.catch(() => {});
+        const id = editingRecordId || createAuditId();
+        const record = captureCurrent(id, "draft");
+        const previous = await readRecord(id);
+        record.createdAt = previous?.createdAt || record.savedAt;
+        record.history = previous?.history || [];
+        await saveRecord(record);
         editingRecordId = id;
         editingRecordKind = "draft";
-        await renderSavedRecords();
-        await renderDashboard();
-        showNotice("Draft saved.");
+        document.getElementById("saveState").textContent = "Saved";
+        showView("dashboard");
       } catch (error) {
         showError(`Could not save draft: ${error.message}`);
       } finally {
@@ -1455,14 +2067,21 @@
       }
     }
 
+    function showActionConfirmation(title, details, timestamp = "") {
+      document.getElementById("successTitle").textContent = title;
+      document.getElementById("successDetails").textContent = details;
+      document.getElementById("successTimestamp").textContent = timestamp;
+      const dialog = document.getElementById("successDialog");
+      if (!dialog.open) dialog.showModal();
+    }
+
     function showSubmissionSuccess(record, updated) {
-      document.getElementById("successTitle").textContent = updated
-        ? "Audit updated successfully"
-        : "Form submitted successfully";
-      document.getElementById("successDetails").textContent = `${record.site} · ${record.date}`;
-      document.getElementById("successTimestamp").textContent =
-        `Submitted ${new Date(record.savedAt).toLocaleString()} · Saved on this device`;
-      document.getElementById("successDialog").showModal();
+      showView("dashboard");
+      showActionConfirmation(
+        updated ? "Audit updated successfully" : "Audit submitted successfully",
+        `${record.site} · ${record.date}`,
+        `Submitted ${new Date(record.savedAt).toLocaleString()} · Saved on this device`
+      );
     }
 
     async function submitChecklist() {
@@ -1472,7 +2091,12 @@
       button.disabled = true;
       button.textContent = "Saving submission…";
       try {
-        const record = captureCurrent(editingRecordId || `submission-${Date.now()}`, "submitted");
+        if (autoSaveTimer) {
+          clearTimeout(autoSaveTimer);
+          autoSaveTimer = null;
+        }
+        await autoSaveQueue.catch(() => {});
+        const record = captureCurrent(editingRecordId || createAuditId(), "submitted");
         const previous = editingRecordId ? await readRecord(editingRecordId) : null;
         record.history = previous?.history || [];
         if (previous?.kind === "submitted") {
@@ -1485,8 +2109,7 @@
         await saveRecord(record);
         editingRecordId = record.id;
         editingRecordKind = "submitted";
-        await renderSavedRecords();
-        await renderDashboard();
+        document.getElementById("saveState").textContent = "Saved";
         showSubmissionSuccess(record, updatingSubmission);
       } catch (error) {
         showError(`Could not submit checklist: ${error.message}`);
@@ -1496,41 +2119,26 @@
       }
     }
 
-    function startNewChecklist() {
-      if (!window.confirm("Start a new checklist? Unsaved changes will be cleared.")) return false;
+    async function startNewChecklist() {
+      await flushPendingAutoSave();
       resetChecklistForm();
       return true;
     }
 
-    document.querySelectorAll("[data-app-view]").forEach((button) => {
-      button.addEventListener("click", () => showView(button.dataset.appView));
-    });
-    document.getElementById("dashboardNew").addEventListener("click", () => {
-      if (startNewChecklist()) showView("checklist");
-    });
-    document.getElementById("dashboardReports").addEventListener("click", () => showView("reports"));
-    document.getElementById("reportSearch").addEventListener("input", renderSavedRecords);
-    const reportSearchToggle = document.getElementById("reportSearchToggle");
-    const reportSearchLabel = document.getElementById("reportSearchLabel");
-    const reportSearch = document.getElementById("reportSearch");
-    reportSearchToggle.addEventListener("click", () => {
-      const opening = reportSearchLabel.hidden;
-      reportSearchLabel.hidden = !opening;
-      reportSearchToggle.setAttribute("aria-expanded", String(opening));
-      if (opening) reportSearch.focus();
-      else {
-        reportSearch.value = "";
-        renderSavedRecords();
-        reportSearchToggle.focus();
+    document.getElementById("homeButton").addEventListener("click", async () => {
+      try {
+        await flushPendingAutoSave();
+        showView("dashboard");
+      } catch (error) {
+        showError(`Could not preserve the current audit before opening Recent Activity: ${error.message}`);
       }
     });
-    reportSearch.addEventListener("keydown", (event) => {
-      if (event.key !== "Escape") return;
-      reportSearch.value = "";
-      reportSearchLabel.hidden = true;
-      reportSearchToggle.setAttribute("aria-expanded", "false");
-      renderSavedRecords();
-      reportSearchToggle.focus();
+    document.getElementById("dashboardNew").addEventListener("click", async () => {
+      try {
+        if (await startNewChecklist()) showView("checklist");
+      } catch (error) {
+        showError(`Could not preserve the current audit before starting a new one: ${error.message}`);
+      }
     });
     document.getElementById("site").addEventListener("change", () => {
       renderDashboard().catch((error) => showError(`Could not update dashboard: ${error.message}`));
@@ -1543,34 +2151,69 @@
       backToTop.hidden = window.scrollY < 500;
     }, { passive: true });
     backToTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-    document.getElementById("newChecklist").addEventListener("click", startNewChecklist);
+    document.getElementById("newChecklist").addEventListener("click", async () => {
+      try {
+        await startNewChecklist();
+      } catch (error) {
+        showError(`Could not preserve the current audit before restarting: ${error.message}`);
+      }
+    });
     document.getElementById("saveDraft").addEventListener("click", saveDraft);
     document.getElementById("submitChecklist").addEventListener("click", submitChecklist);
-    document.getElementById("nextIncomplete").addEventListener("click", goToNextIncompleteBrand);
     document.getElementById("successOk").addEventListener("click", () => {
       document.getElementById("successDialog").close();
     });
-    renderSavedRecords();
+    document.getElementById("viewClose").addEventListener("click", () => document.getElementById("viewDialog").close());
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden" && hasUnsavedChanges()) {
+        flushPendingAutoSave().catch((error) => {
+          showError(`Could not finish saving before the page was hidden: ${error.message}`);
+        });
+      }
+    });
+    window.addEventListener("pagehide", () => {
+      if (hasUnsavedChanges()) {
+        flushPendingAutoSave().catch((error) => {
+          showError(`Could not finish saving before leaving this page: ${error.message}`);
+        });
+      }
+    });
     showView("dashboard");
+    window.addEventListener("beforeunload", (event) => {
+      if (hasUnsavedChanges()) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    });
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+        showError(`Offline support could not be enabled: ${error.message}. Keep an internet connection available.`);
+      });
+    }
 
-    function containImage(data, box) {
+    async function containImage(data, box) {
       const image = new Image();
-      image.src = data;
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error("An evidence image could not be decoded for the PowerPoint report."));
+        image.src = data;
+        if (image.complete && image.naturalWidth) resolve();
+      });
       const ratio = Math.min(box.w / image.naturalWidth, box.h / image.naturalHeight);
       const w = image.naturalWidth * ratio;
       const h = image.naturalHeight * ratio;
       return { data, x: box.x + (box.w - w) / 2, y: box.y + (box.h - h) / 2, w, h };
     }
 
-    function addPhoto(slide, data, box) {
+    async function addPhoto(slide, data, box) {
       if (!data) {
-        slide.addText("No photo supplied (N/A)", {
+        slide.addText("No photo evidence supplied.", {
           x: box.x, y: box.y + box.h / 2 - 0.2, w: box.w, h: 0.4,
           fontFace: "Aptos", fontSize: 14, color: "687871", align: "center"
         });
         return;
       }
-      slide.addImage(containImage(data, box));
+      slide.addImage(await containImage(data, box));
     }
 
     function addBase(pptx, slide, sectionLabel) {
@@ -1591,7 +2234,7 @@
       });
     }
 
-    function addCover(pptx, site, auditor, date, answers) {
+    function addCover(pptx, record, answers) {
       const slide = pptx.addSlide();
       slide.background = { color: "081F5C" };
       slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 0.22, h: 7.5, line: { color: "1261DF", transparency: 100 }, fill: { color: "1261DF" } });
@@ -1602,49 +2245,89 @@
       slide.addText("Daily Floor Walk", {
         x: 0.9, y: 1.85, w: 11.3, h: 0.85, fontFace: "Aptos Display", fontSize: 36, bold: true, color: "FFFFFF"
       });
-      slide.addText(site, {
+      slide.addText(record.site || "Store not selected", {
         x: 0.9, y: 3.02, w: 11.3, h: 0.55, fontFace: "Aptos", fontSize: 20, color: "FFFFFF", breakLine: false
       });
       slide.addShape(pptx.ShapeType.line, { x: 0.9, y: 4.03, w: 10.8, h: 0, line: { color: "55A4FF", width: 1.2 } });
-      slide.addText(`Walk date  ${date}\nCompleted by  ${auditor}\nAvailable brands  ${answers.length}\nChecklist result  ${answers.filter((answer) => answer.status === "Yes").length} in order  •  ${answers.filter((answer) => answer.status === "No").length} need attention  •  ${answers.filter((answer) => answer.status === "N/A").length} N/A`, {
+      slide.addText(`StorePulse VM Audit\nAudit ID  ${record.id}\nStatus  ${recordStatusLabel(record.kind)}\nWalk date  ${record.date || "Not set"}\nAuditor  ${record.auditor || "Not entered"}\nBrands recorded  ${answers.length}`, {
         x: 0.9, y: 4.35, w: 11.2, h: 1.25, fontFace: "Aptos", fontSize: 15, color: "EEF4FF", breakLine: false, lineSpacingMultiple: 1.2
       });
     }
 
-    function addOverview(pptx, answers) {
+    function addStoreDetailsSlide(pptx, record) {
+      const slide = pptx.addSlide();
+      addBase(pptx, slide, "Store details");
+      slide.addText("Store Details", {
+        x: 0.62, y: 0.82, w: 12.1, h: 0.62, fontFace: "Aptos Display", fontSize: 26, bold: true, color: "18332D"
+      });
+      const details = [
+        ["Audit identifier", record.id],
+        ["Status", recordStatusLabel(record.kind)],
+        ["Store name", record.site || "Not selected"],
+        ["Walk date", record.date || "Not set"],
+        ["Auditor name", record.auditor || "Not entered"],
+        ["Last saved", record.savedAt ? new Date(record.savedAt).toLocaleString() : "Not saved"]
+      ];
+      slide.addTable(details.map(([label, value]) => [
+        { text: label, options: { bold: true, color: "18332D", fill: "EAF0FF" } },
+        { text: String(value), options: { color: "18332D", fill: "FFFFFF" } }
+      ]), {
+        x: 0.75, y: 1.75, w: 11.8, h: 4.2, border: { type: "solid", color: "DCE5DF", pt: 1 },
+        fontFace: "Aptos", fontSize: 15, rowH: 0.65, margin: 0.14, colW: [3.3, 8.5], valign: "mid"
+      });
+    }
+
+    function addOverview(pptx, answers, nptBrands) {
       const slide = pptx.addSlide();
       addBase(pptx, slide, "Walk summary");
-      slide.addText("Category summary", {
+      const totalBrands = answers.length + nptBrands.length;
+      const answeredCount = answers.filter((answer) => answer.availability === "No"
+        || answer.availability === "Yes" && (answer.sdmAnswer || answer.status && answer.status !== "Unavailable")).length
+        + nptBrands.filter((brand) => brand.availability === "No"
+          || brand.availability === "Yes" && brand.sdmAnswer).length;
+      slide.addText("Brand Summary", {
         x: 0.55, y: 0.82, w: 11.9, h: 0.5, fontFace: "Aptos Display", fontSize: 25, bold: true, color: "18332D"
+      });
+      slide.addText(`Total brands  ${totalBrands}     Answered  ${answeredCount}     Remaining  ${Math.max(0, totalBrands - answeredCount)}`, {
+        x: 0.7, y: 1.35, w: 12, h: 0.35, fontFace: "Aptos", fontSize: 12, bold: true, color: "6323AA"
       });
       const columns = [
         { text: "CATEGORY", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
-        { text: "IN ORDER", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
-        { text: "NEEDS ATTENTION", options: { bold: true, color: "FFFFFF", fill: "6323AA" } },
-        { text: "N/A", options: { bold: true, color: "FFFFFF", fill: "6323AA" } }
+        { text: "AVAILABLE", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
+        { text: "NOT AVAILABLE", options: { bold: true, color: "FFFFFF", fill: "124FAE" } },
+        { text: "SDM YES", options: { bold: true, color: "FFFFFF", fill: "6323AA" } },
+        { text: "SDM NO", options: { bold: true, color: "FFFFFF", fill: "6323AA" } }
       ];
       const rows = [columns];
       groups.forEach((group) => {
         const groupAnswers = answers.filter((answer) => answer.group === group.title);
         rows.push([
           group.title,
-          String(groupAnswers.filter((answer) => answer.status === "Yes").length),
-          String(groupAnswers.filter((answer) => answer.status === "No").length),
-          String(groupAnswers.filter((answer) => answer.status === "N/A").length)
+          String(groupAnswers.filter((answer) => answer.availability === "Yes").length),
+          String(groupAnswers.filter((answer) => answer.availability === "No" || answer.status === "Unavailable").length),
+          String(groupAnswers.filter((answer) => answer.sdmAnswer === "Yes" || answer.status === "Yes").length),
+          String(groupAnswers.filter((answer) => answer.sdmAnswer === "No" || answer.status === "No").length)
         ]);
       });
+      rows.push([
+        "NPT Brands",
+        String(nptBrands.filter((brand) => brand.availability === "Yes").length),
+        String(nptBrands.filter((brand) => brand.availability === "No").length),
+        "—",
+        "—"
+      ]);
       slide.addTable(rows, {
-        x: 0.7, y: 1.65, w: 11.9, h: 4.4, border: { type: "solid", color: "DCE5DF", pt: 1 },
-        fill: "FFFFFF", color: "18332D", fontFace: "Aptos", fontSize: 14,
-        rowH: 0.58, margin: 0.12,
-        valign: "mid", align: "left", colW: [5.0, 2.0, 3.0, 1.9]
+        x: 0.7, y: 1.85, w: 11.9, h: 4.55, border: { type: "solid", color: "DCE5DF", pt: 1 },
+        fill: "FFFFFF", color: "18332D", fontFace: "Aptos", fontSize: 12,
+        rowH: 0.53, margin: 0.1,
+        valign: "mid", align: "left", colW: [3.9, 1.7, 2.3, 1.9, 1.9]
       });
-      slide.addText("Photo evidence and observations are shown on the following brand detail slides.", {
+      slide.addText("Brand evidence and Issues / Observations follow in the category sections.", {
         x: 0.72, y: 6.3, w: 11.7, h: 0.36, fontFace: "Aptos", fontSize: 12, color: "63746F"
       });
     }
 
-    function addPhotoPanel(pptx, slide, photo, index, total, box) {
+    async function addPhotoPanel(pptx, slide, photo, index, total, box) {
       slide.addShape(pptx.ShapeType.roundRect, {
         x: box.x, y: box.y, w: box.w, h: box.h, rectRadius: 0.08,
         line: { color: "DCE5F5", pt: 1 }, fill: { color: "FFFFFF" }
@@ -1656,7 +2339,7 @@
         });
       }
       const labelHeight = total > 1 ? 0.34 : 0.16;
-      addPhoto(slide, photo, {
+      await addPhoto(slide, photo, {
         x: box.x + 0.16,
         y: box.y + labelHeight,
         w: box.w - 0.32,
@@ -1664,74 +2347,109 @@
       });
     }
 
-    function addPhotoPair(pptx, slide, photos, startIndex, total, y, height) {
+    async function addPhotoPair(pptx, slide, photos, startIndex, total, y, height) {
       const gap = 0.22;
       const sideMargin = 0.62;
       const usableWidth = 13.333 - sideMargin * 2;
       const pair = photos.slice(startIndex, startIndex + 2);
       const panelWidth = pair.length === 1 ? usableWidth : (usableWidth - gap) / 2;
       const startX = pair.length === 1 ? sideMargin : sideMargin;
-      pair.forEach((photo, pairIndex) => {
-        addPhotoPanel(pptx, slide, photo, startIndex + pairIndex, total, {
+      for (let pairIndex = 0; pairIndex < pair.length; pairIndex += 1) {
+        await addPhotoPanel(pptx, slide, pair[pairIndex], startIndex + pairIndex, total, {
           x: startX + pairIndex * (panelWidth + gap),
           y,
           w: panelWidth,
           h: height
         });
-      });
+      }
       if (!pair.length) {
-        addPhotoPanel(pptx, slide, null, 0, 0, {
+        await addPhotoPanel(pptx, slide, null, 0, 0, {
           x: sideMargin, y, w: usableWidth, h: height
         });
       }
     }
 
-    function addDetail(pptx, answer, index, totalAnswers) {
-      const photos = answer.photos || (answer.photo ? [answer.photo] : []);
+    async function addDetail(pptx, answer, index, totalAnswers) {
+      const availability = answer.availability || (answer.status === "Unavailable" ? "No" : answer.status ? "Yes" : "");
+      const sdmAnswer = answer.sdmAnswer || (answer.status === "Unavailable" ? "" : answer.status || "");
+      const photos = availability === "Yes" ? (answer.photos || (answer.photo ? [answer.photo] : [])) : [];
       const pageCount = Math.max(1, Math.ceil(photos.length / 2));
       for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
         const slide = pptx.addSlide();
         addBase(pptx, slide, `${answer.group}  •  ${index} of ${totalAnswers}`);
-        slide.addText(answer.name, {
-          x: 0.62, y: 0.72, w: 12.1, h: 0.62,
+        slide.addText(displayBrandName(answer.name), {
+          x: 0.62, y: 0.68, w: 12.1, h: 0.55,
           fontFace: "Aptos Display", fontSize: 25, bold: true, color: "18332D", valign: "mid", margin: 0
         });
-        const color = answer.status === "Yes" ? "1261DF" : answer.status === "No" ? "A53B35" : "61718F";
-        const statusText = answer.status === "Yes" ? "IN ORDER"
-          : answer.status === "No" ? "NEEDS ATTENTION"
-            : "NOT APPLICABLE";
-        slide.addShape(pptx.ShapeType.roundRect, {
-          x: 0.64, y: 1.42, w: 2.45, h: 0.34, rectRadius: 0.06,
-          line: { color, transparency: 100 }, fill: { color }
-        });
-        slide.addText(statusText, {
-          x: 0.74, y: 1.49, w: 2.25, h: 0.16,
-          fontFace: "Aptos", fontSize: 9, bold: true, color: "FFFFFF", align: "center", margin: 0
+        slide.addText(`Availability: ${availability || "Unanswered"}${availability === "Yes" ? `   ·   SDM: ${sdmAnswer || "Unanswered"}` : ""}`, {
+          x: 0.66, y: 1.3, w: 12, h: 0.34, fontFace: "Aptos", fontSize: 13, bold: true, color: "18332D"
         });
         const firstPhotoIndex = pageIndex * 2;
-        addPhotoPair(pptx, slide, photos, firstPhotoIndex, photos.length, 1.92, 3.85);
-        slide.addText("OBSERVATION / FOLLOW-UP", {
-          x: 0.64, y: 5.96, w: 12.05, h: 0.18,
-          fontFace: "Aptos", fontSize: 8, bold: true, charSpacing: 0.6, color: "61718F", margin: 0
-        });
-        slide.addText(answer.note || "No observation recorded.", {
-          x: 0.64, y: 6.2, w: 12.05, h: 0.62,
-          fontFace: "Aptos", fontSize: 10, color: answer.note ? "18332D" : "87948F",
-          valign: "top", breakLine: false, margin: 0
-        });
+        if (availability === "Yes") {
+          await addPhotoPair(pptx, slide, photos, firstPhotoIndex, photos.length, 1.78, 3.38);
+        }
+        if (pageIndex === 0 && availability === "Yes") {
+          const observations = formatObservationPoints(answer.observations, answer.note);
+          if (observations) {
+            slide.addText("ISSUES / OBSERVATIONS", {
+              x: 0.64, y: 5.3, w: 12.05, h: 0.18,
+              fontFace: "Aptos", fontSize: 8, bold: true, charSpacing: 0.6, color: "61718F", margin: 0
+            });
+            slide.addText(observations, {
+              x: 0.64, y: 5.52, w: 12.05, h: 1.18,
+              fontFace: "Aptos", fontSize: 10, color: "18332D",
+              valign: "top", breakLine: false, margin: 0
+            });
+          }
+        }
       }
     }
 
-    function addNptDetail(pptx, name, photos, brandIndex, totalBrands) {
+    async function addNptDetail(pptx, brand, brandIndex, totalBrands) {
+      const photos = brand.availability === "Yes" ? brand.photos || [] : [];
       const pageCount = Math.max(1, Math.ceil(photos.length / 2));
       for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
         const slide = pptx.addSlide();
         addBase(pptx, slide, `NPT BRAND ${brandIndex} OF ${totalBrands}`);
-        slide.addText(name || "NPT brand", {
-          x: 0.62, y: 0.82, w: 12.1, h: 0.72,
+        slide.addText(displayBrandName(brand.name) || "NPT brand", {
+          x: 0.62, y: 0.68, w: 12.1, h: 0.55,
           fontFace: "Aptos Display", fontSize: 25, bold: true, color: "18332D", valign: "mid", margin: 0
         });
-        addPhotoPair(pptx, slide, photos, pageIndex * 2, photos.length, 1.82, 4.45);
+        slide.addText(`Availability: ${brand.availability || "Unanswered"}`, {
+          x: 0.66, y: 1.3, w: 12, h: 0.34, fontFace: "Aptos", fontSize: 13, bold: true, color: "18332D"
+        });
+        if (brand.availability === "Yes") {
+          await addPhotoPair(pptx, slide, photos, pageIndex * 2, photos.length, 1.78, 3.38);
+        }
+        if (pageIndex === 0) {
+          const observations = formatObservationPoints(brand.observations, brand.comment);
+          if (observations) {
+            slide.addText(`ISSUES / OBSERVATIONS\n${observations}`, {
+              x: 0.64, y: 5.3, w: 12.05, h: 1.4,
+              fontFace: "Aptos", fontSize: 10, color: "18332D", valign: "top", breakLine: false, margin: 0
+            });
+          }
+        }
+      }
+    }
+
+    async function addObservationSlides(pptx, record) {
+      const photos = record.observationPhotos || [];
+      const pageCount = Math.max(1, Math.ceil(photos.length / 2));
+      for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
+        const slide = pptx.addSlide();
+        addBase(pptx, slide, "Issues / Observations");
+        slide.addText("Issues / Observations", {
+          x: 0.62, y: 0.72, w: 12.1, h: 0.62,
+          fontFace: "Aptos Display", fontSize: 25, bold: true, color: "18332D"
+        });
+        if (pageIndex === 0) {
+          slide.addText(formatObservationPoints(record.observationPoints, record.observationText) || "No observation details recorded.", {
+            x: 0.66, y: 1.48, w: 12, h: 0.8, fontFace: "Aptos", fontSize: 14, color: "18332D",
+            valign: "top", breakLine: false, margin: 0.08
+          });
+        }
+        await addPhotoPair(pptx, slide, photos, pageIndex * 2, photos.length, 2.5, 3.95);
       }
     }
 
@@ -1751,18 +2469,25 @@
       return pptx;
     }
 
-    function addRecordReportSlides(pptx, record) {
-      const answers = (record.answers || []).filter((answer) => answer.availability === "Yes");
-      addCover(pptx, record.site, record.auditor, record.date, answers);
-      addOverview(pptx, answers);
-      answers.forEach((answer, index) => addDetail(pptx, answer, index + 1, answers.length));
-      const nptBrands = getRecordNptBrands(record);
-      nptBrands.forEach((brand, index) => addNptDetail(pptx, brand.name, brand.photos, index + 1, nptBrands.length));
+    async function addRecordReportSlides(pptx, record) {
+      const answers = record.answers || [];
+      const nptBrands = getRecordNptBrands(record).filter((brand) => brand.name);
+      addCover(pptx, record, [...answers, ...nptBrands]);
+      addStoreDetailsSlide(pptx, record);
+      addOverview(pptx, answers, nptBrands);
+      const answeredBrands = answers.filter((answer) => answer.availability || answer.status);
+      for (let index = 0; index < answeredBrands.length; index += 1) {
+        await addDetail(pptx, answeredBrands[index], index + 1, answeredBrands.length);
+      }
+      for (let index = 0; index < nptBrands.length; index += 1) {
+        await addNptDetail(pptx, nptBrands[index], index + 1, nptBrands.length);
+      }
+      await addObservationSlides(pptx, record);
     }
 
     async function downloadReport(record, button, validateCurrent = false) {
-      if (record.kind !== "submitted") {
-        showError("Only submitted reports can be downloaded as PowerPoint.");
+      if (record.kind !== "submitted" && record.kind !== "draft") {
+        showError("Only saved drafts and submitted audits can be downloaded as PowerPoint.");
         return;
       }
       if (validateCurrent && !validate()) return;
@@ -1770,23 +2495,26 @@
         showError("PowerPoint export could not load. Check your internet connection, refresh this page and try again.");
         return;
       }
+      const originalButtonText = button.textContent;
       button.disabled = true;
       button.textContent = "Creating PowerPoint…";
       showError("");
       try {
         const pptx = createReportPptx();
-        addRecordReportSlides(pptx, record);
-        const storeLabel = (record.site || "store")
+        await addRecordReportSlides(pptx, record);
+        const storeLabel = displayBrandName(record.site || "store")
           .replace(/[<>:"/\\|?*\u0000-\u001F]/g, " ")
           .trim()
           .replace(/\s+/g, "-")
           .slice(0, 100);
-        await pptx.writeFile({ fileName: `StorePulse-VM-Floor-Walk-${storeLabel}-${record.date || "report"}.pptx` });
+        const fileName = `${storeLabel}-${record.date || "report"}.pptx`;
+        await pptx.writeFile({ fileName });
+        showActionConfirmation("PowerPoint downloaded", fileName, "Your browser has started the download.");
       } catch (error) {
         showError(`Could not create the PowerPoint report: ${error.message || "Unexpected export error."}`);
       } finally {
         button.disabled = false;
-        button.textContent = button.id === "download" ? "📊 Export report (PPTX)" : "⬇ PPTX";
+        button.textContent = originalButtonText;
       }
     }
 
