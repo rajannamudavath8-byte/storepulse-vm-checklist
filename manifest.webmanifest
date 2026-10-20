@@ -1,0 +1,18 @@
+{
+  "name": "StorePulse VM Audit",
+  "short_name": "StorePulse",
+  "description": "Daily visual merchandising floor walk checklist",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f6f3",
+  "theme_color": "#312e81",
+  "icons": [
+    {
+      "src": "./storepulse-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
