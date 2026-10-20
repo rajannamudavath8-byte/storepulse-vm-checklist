@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#312e81">
   <link rel="manifest" href="./manifest.webmanifest">
   <title>StorePulse — VM Audit</title>
-  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.1/dist/pptxgen.bundle.js"></script>
   <style>
     :root {
       color-scheme: light;
@@ -2469,6 +2469,25 @@
       return pptx;
     }
 
+    function sanitizePptxValue(value, key = "") {
+      if (typeof value === "string") {
+        if (/^(photo|photos|observationPhotos)$/i.test(key)) return value;
+        return Array.from(value).filter((character) => {
+          const codePoint = character.codePointAt(0);
+          return codePoint === 0x09 || codePoint === 0x0a || codePoint === 0x0d
+            || (codePoint >= 0x20 && codePoint <= 0xd7ff)
+            || (codePoint >= 0xe000 && codePoint <= 0xfffd)
+            || (codePoint >= 0x10000 && codePoint <= 0x10ffff);
+        }).join("");
+      }
+      if (Array.isArray(value)) return value.map((item) => sanitizePptxValue(item, key));
+      if (value && typeof value === "object") {
+        return Object.fromEntries(Object.entries(value)
+          .map(([property, item]) => [property, sanitizePptxValue(item, property)]));
+      }
+      return value;
+    }
+
     async function addRecordReportSlides(pptx, record) {
       const answers = record.answers || [];
       const nptBrands = getRecordNptBrands(record).filter((brand) => brand.name);
@@ -2501,7 +2520,7 @@
       showError("");
       try {
         const pptx = createReportPptx();
-        await addRecordReportSlides(pptx, record);
+        await addRecordReportSlides(pptx, sanitizePptxValue(record));
         const storeLabel = displayBrandName(record.site || "store")
           .replace(/[<>:"/\\|?*\u0000-\u001F]/g, " ")
           .trim()
