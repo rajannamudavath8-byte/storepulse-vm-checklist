@@ -194,6 +194,9 @@
     .back-to-top { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; }
     .back-to-top[hidden] { display: none; }
     .success-dialog { width: min(440px, calc(100% - 32px)); padding: 32px 28px 26px; border: 0; border-radius: 18px; color: var(--ink); text-align: center; box-shadow: 0 20px 60px #18332d40; overflow: hidden; }
+    .success-toast { position: fixed; right: max(20px, calc((100% - 1100px) / 2)); bottom: 20px; z-index: 20; display: flex; align-items: center; gap: 10px; width: max-content; max-width: min(420px, calc(100% - 32px)); padding: 12px 16px; border: 1px solid #246447; border-radius: 12px; background: #143b31; color: #b6f5d2; box-shadow: 0 12px 32px #02091666; font-weight: 650; }
+    .success-toast[hidden] { display: none; }
+    .success-toast-icon { display: grid; place-items: center; flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: #1dbb70; color: #071d16; font-size: 16px; font-weight: 800; line-height: 1; }
     #viewDialog { width: min(900px, calc(100% - 32px)); max-height: min(85vh, 900px); overflow: auto; text-align: left; }
     .audit-summary section { padding: 10px 0; border-top: 1px solid var(--line); }
     .audit-summary p { white-space: pre-line; }
@@ -207,12 +210,12 @@
     .summary-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
     #viewError { color: var(--red); }
     .success-dialog::backdrop { background: #17231f66; backdrop-filter: blur(3px); }
-    .success-icon { display: grid; place-items: center; width: 142px; height: 142px; margin: 2px auto 20px; border-radius: 50%; background: #6655ee; color: #fff; font-size: 100px; line-height: 1; font-weight: 300; }
+    .success-icon { display: grid; place-items: center; width: 142px; height: 142px; margin: 2px auto 20px; border-radius: 50%; background: #1dbb70; color: #071d16; font-size: 100px; line-height: 1; font-weight: 300; }
     .success-dialog h2 { margin: 0 0 14px; font-size: 1.55rem; }
     .success-dialog p { margin: 8px 0; overflow-wrap: anywhere; }
     .success-timestamp { color: var(--muted); font-size: .92rem; }
-    .success-dialog button { width: min(220px, 100%); margin-top: 18px; padding: 12px 20px; background: #4773dc; font-size: 1.1rem; font-weight: 500; }
-    .success-dialog button:hover { background: #345fc4; }
+    .success-dialog button { width: min(220px, 100%); margin-top: 18px; padding: 12px 20px; background: #1dbb70; color: #071d16; font-size: 1.1rem; font-weight: 600; }
+    .success-dialog button:hover { background: #38d98b; }
     .confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
     .confetti i { position: absolute; width: 10px; height: 10px; background: #f22; }
     .confetti i:nth-child(1) { top: 20%; left: 8%; background: #f22; }
@@ -514,6 +517,10 @@
     </div>
   </main>
 
+  <div id="successToast" class="success-toast" role="status" aria-live="polite" hidden>
+    <span class="success-toast-icon" aria-hidden="true">✓</span>
+    <span id="successToastMessage"></span>
+  </div>
   <dialog id="successDialog" class="success-dialog" aria-labelledby="successTitle" aria-describedby="successDetails">
     <div class="confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="success-icon" aria-hidden="true">✓</div>
@@ -567,6 +574,7 @@
     let autoSaveTimer = null;
     let autoSaveQueue = Promise.resolve();
     let autoSaveRevision = 0;
+    let successToastTimer = null;
     let dashboardRenderRevision = 0;
     let dashboardActivityFilter = "all";
     let viewingRecordId = null;
@@ -830,6 +838,14 @@
     }
 
     async function openCamera(onCapture, fallbackInput) {
+      const isTouchIPad = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+      const isMobileDevice = navigator.userAgentData?.mobile
+        || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+        || isTouchIPad;
+      if (isMobileDevice && fallbackInput?.hasAttribute("capture")) {
+        fallbackInput.click();
+        return;
+      }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.isSecureContext) {
         fallbackInput.click();
         return;
@@ -1311,6 +1327,7 @@
     }
 
     function showError(message) {
+      hideSuccessToast();
       const error = document.getElementById("error");
       error.classList.remove("success");
       error.textContent = message;
@@ -1324,6 +1341,29 @@
       notice.textContent = message;
       notice.style.display = "block";
       notice.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function hideSuccessToast() {
+      if (successToastTimer) {
+        clearTimeout(successToastTimer);
+        successToastTimer = null;
+      }
+      document.getElementById("successToast").hidden = true;
+    }
+
+    function showSuccessToast(message) {
+      const error = document.getElementById("error");
+      error.classList.remove("success");
+      error.textContent = "";
+      error.style.display = "none";
+      const toast = document.getElementById("successToast");
+      document.getElementById("successToastMessage").textContent = message;
+      toast.hidden = false;
+      if (successToastTimer) clearTimeout(successToastTimer);
+      successToastTimer = setTimeout(() => {
+        toast.hidden = true;
+        successToastTimer = null;
+      }, 3500);
     }
 
     function focusChecklistLocation(container, control) {
@@ -1724,6 +1764,7 @@
         if (editingRecordId === id) editingRecordKind = record.kind;
         if (revision === autoSaveRevision && !autoSaveTimer) {
           document.getElementById("saveState").textContent = "Saved";
+          showSuccessToast("All changes saved.");
         }
         renderDashboard().catch((error) => {
           showError(`Audit saved, but the screen could not be refreshed: ${error.message}`);
@@ -2543,8 +2584,10 @@
         await autoSaveQueue.catch(() => {});
         const id = editingRecordId || createAuditId();
         const preserveSubmitted = editingRecordKind === "submitted";
+        const updatingDraft = editingRecordKind === "draft";
         const record = captureCurrent(id, preserveSubmitted ? "submitted" : "draft");
         const previous = await readRecord(id);
+        const isDraftUpdate = updatingDraft || previous?.kind === "draft";
         record.createdAt = previous?.createdAt || record.savedAt;
         record.history = previous?.history || [];
         if (previous?.kind === "submitted") {
@@ -2561,7 +2604,9 @@
         editingRecordKind = record.kind;
         document.getElementById("saveState").textContent = "Saved";
         showView("dashboard");
-        showNotice(preserveSubmitted ? "Submitted audit updated successfully." : "Draft updated successfully.");
+        showSuccessToast(preserveSubmitted
+          ? "Submitted audit updated successfully."
+          : isDraftUpdate ? "Draft updated successfully." : "Draft saved successfully.");
       } catch (error) {
         showError(`Could not save draft: ${error.message}`);
       } finally {
@@ -2569,10 +2614,11 @@
       }
     }
 
-    function showActionConfirmation(title, details, timestamp = "") {
+    function showActionConfirmation(title, details, timestamp = "", actionLabel = "OK") {
       document.getElementById("successTitle").textContent = title;
       document.getElementById("successDetails").textContent = details;
       document.getElementById("successTimestamp").textContent = timestamp;
+      document.getElementById("successOk").textContent = actionLabel;
       const dialog = document.getElementById("successDialog");
       if (!dialog.open) dialog.showModal();
     }
@@ -2580,9 +2626,10 @@
     function showSubmissionSuccess(record, updated) {
       showView("dashboard");
       showActionConfirmation(
-        updated ? "Audit updated successfully" : "Audit submitted successfully",
+        updated ? "Audit updated successfully" : "Audit submitted successfully!",
         `${record.site} · ${record.date}`,
-        `Submitted ${new Date(record.savedAt).toLocaleString()} · Saved on this device`
+        `Submitted ${new Date(record.savedAt).toLocaleString()} · Saved on this device`,
+        "Go to Dashboard"
       );
     }
 
@@ -2672,6 +2719,9 @@
     document.getElementById("submitChecklist").addEventListener("click", submitChecklist);
     document.getElementById("successOk").addEventListener("click", () => {
       document.getElementById("successDialog").close();
+      if (document.getElementById("successOk").textContent === "Go to Dashboard") {
+        showView("dashboard");
+      }
     });
     document.getElementById("photoDialogClose").addEventListener("click", () => {
       document.getElementById("photoDialog").close();
