@@ -630,7 +630,7 @@
               </div>
             </div>
             <div class="item-fields conditional-audit" id="${id}-details" hidden>
-              <div class="photo-field brand-photo-field"><span>Upload image of Brand</span>
+              <div class="photo-field brand-photo-field"><span>Upload Image of Brand</span>
                 <div class="photo-actions">
                   <label class="photo-pick-button" title="Take photo">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4h-4l-1.5 2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L14 4Z"/><circle cx="12" cy="12.5" r="3.2"/></svg>
@@ -1074,7 +1074,7 @@
       entry.querySelector(`#${id}-audit`).hidden = !available;
       entry.querySelector(`#${id}-details`).hidden = !available;
       entry.querySelector(".brand-photo-field").hidden = !status;
-      entry.querySelector(".brand-observations").hidden = status !== "Yes";
+      entry.querySelector(".brand-observations").hidden = !status;
     }
 
     function addNptBrandFromInput() {
@@ -1272,7 +1272,7 @@
       const sdmAnswer = getRadioAnswer(`${item.id}-status`);
       details.hidden = !available;
       details.querySelector(".brand-photo-field").hidden = !sdmAnswer;
-      details.querySelector(".brand-observations").hidden = sdmAnswer !== "Yes";
+      details.querySelector(".brand-observations").hidden = !sdmAnswer;
     }
 
     function renderObservationPhotos() {
@@ -2161,7 +2161,7 @@
           const available = select.value === "Yes";
           sdmWrap.hidden = !available;
           photoEvidence.hidden = !available || !sdmSelect.value;
-          followUpFields.hidden = !available || sdmSelect.value !== "Yes";
+          followUpFields.hidden = !available || !sdmSelect.value;
         };
         select.addEventListener("change", updateFollowUpVisibility);
         sdmSelect.addEventListener("change", updateFollowUpVisibility);
@@ -2217,7 +2217,7 @@
           const availability = answer.availability || (answer.status === "Unavailable" ? "No" : "");
           result.textContent = `Does your store have ${displayBrandName(answer.name)}? ${availability || "Unanswered"}`
             + (availability === "Yes" ? ` · Is the brand displayed as per SDM? ${sdmAnswerLabel(answer.sdmAnswer || answer.status)}`
-              + ((answer.sdmAnswer || answer.status) === "Yes" && formatObservationPoints(answer.observations, answer.note)
+              + ((answer.sdmAnswer || answer.status) && formatObservationPoints(answer.observations, answer.note)
                 ? `\nIssues / Observations:\n${formatObservationPoints(answer.observations, answer.note)}` : "") : "");
           const edit = document.createElement("button");
           edit.type = "button";
@@ -2285,7 +2285,7 @@
         const result = document.createElement("p");
         result.textContent = `Does your store have ${displayBrandName(brand.name)}? ${brand.availability || "Unanswered"}`
           + (brand.availability === "Yes" ? ` · Is the brand displayed as per SDM? ${sdmAnswerLabel(brand.sdmAnswer)}`
-            + (brand.sdmAnswer === "Yes" && formatObservationPoints(brand.observations, brand.comment)
+            + (brand.sdmAnswer && formatObservationPoints(brand.observations, brand.comment)
               ? `\nIssues / Observations:\n${formatObservationPoints(brand.observations, brand.comment)}` : "") : "");
         const edit = document.createElement("button");
         edit.type = "button";
@@ -2909,7 +2909,7 @@
     async function addDetail(pptx, answer, index, totalAnswers) {
       const availability = answer.availability || (answer.status === "Unavailable" ? "No" : answer.status ? "Yes" : "");
       const sdmAnswer = answer.sdmAnswer || (answer.status === "Unavailable" ? "" : answer.status || "");
-      const followUpVisible = availability === "Yes" && sdmAnswer === "Yes";
+      const followUpVisible = availability === "Yes" && Boolean(sdmAnswer);
       const photoEvidenceVisible = availability === "Yes" && Boolean(sdmAnswer);
       const photos = photoEvidenceVisible ? (answer.photos || (answer.photo ? [answer.photo] : [])) : [];
       const pageCount = Math.max(1, Math.ceil(photos.length / 2));
@@ -2945,7 +2945,7 @@
     }
 
     async function addNptDetail(pptx, brand, brandIndex, totalBrands) {
-      const followUpVisible = brand.availability === "Yes" && brand.sdmAnswer === "Yes";
+      const followUpVisible = brand.availability === "Yes" && Boolean(brand.sdmAnswer);
       const photoEvidenceVisible = brand.availability === "Yes" && Boolean(brand.sdmAnswer);
       const photos = photoEvidenceVisible ? brand.photos || [] : [];
       const pageCount = Math.max(1, Math.ceil(photos.length / 2));
