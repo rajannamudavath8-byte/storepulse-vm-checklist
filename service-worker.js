@@ -1,5 +1,9 @@
-const CACHE_NAME = "storepulse-vm-audit-v1";
-const APP_SHELL = ["./", "./manifest.webmanifest", "./storepulse-icon.svg"];
+const CACHE_NAME = "storepulse-vm-audit-v3";
+const APP_SHELL = [
+  "./",
+  "./manifest.webmanifest",
+  "./storepulse-icon.svg"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
